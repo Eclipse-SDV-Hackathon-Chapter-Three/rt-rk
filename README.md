@@ -160,16 +160,3 @@ ank logs EmergencyStop --follow
 ank logs LaneAssistance --follow
 ank logs PedestrianDetection --follow
 ```
-
-## Container Configuration
-
-The application is configured to run with Podman through:
-- **Dockerfile**: Optimized for Podman with non-root user and security best practices
-- **manifest.yaml**: Specifies `runtime: podman` and container image
-- **Security**: Runs as non-root user `appuser` for enhanced security
-
-## Podman Advantages
-- **Rootless operation**: Enhanced security without requiring root privileges
-- **Systemd integration**: Better integration with system services
-- **Docker compatibility**: Drop-in replacement for Docker commands
-- **No daemon**: Simpler architecture without background daemon process
