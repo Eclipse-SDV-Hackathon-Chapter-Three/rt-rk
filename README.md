@@ -78,3 +78,98 @@ We follow an agile development approach with rapid prototyping and iterative imp
 - **Lead Consultation**: Major architectural decisions reviewed by team
 - **Documentation**: All decisions documented with reasoning
 - **Rapid Response**: Quick decision-making for time-sensitive issues during hackathon
+
+# 3. Building and Running with Podman
+
+## Prerequisites
+- Podman installed on your system
+- Ankaios runtime environment
+
+## Project Structure
+The project is organized with modular worker components:
+```
+rt-rk/
+├── workers/
+│   ├── emergency/
+│   │   └── worker_emergency.py     # Emergency stop system
+│   ├── lane/
+│   │   └── worker_lane.py          # Lane keeping assistance
+│   └── pedestrian/
+│       └── worker_pedestrian.py    # Pedestrian detection
+├── Dockerfile
+├── manifest.yaml
+├── requirements.txt
+└── build.sh
+```
+
+## Building the Container
+
+### Enhanced Build Script
+The build script supports multiple options for different workflows:
+
+```bash
+# Basic build (container only)
+./build.sh
+
+# Build and deploy to Ankaios
+./build.sh --deploy
+
+# Rebuild and redeploy (deletes existing workloads first)
+./build.sh --rebuild
+
+# Clean up workloads without rebuilding
+./build.sh --clean
+
+# Show help
+./build.sh --help
+```
+
+### Manual Build
+```bash
+# Build the container image
+podman build -t localhost/example_python_workload:0.1 .
+
+# Verify the build
+podman images | grep example_python_workload
+```
+
+## Running the Application
+
+### Local Testing - Individual Workers
+```bash
+# Test emergency stop worker
+podman run --rm localhost/example_python_workload:0.1 python3 workers/emergency/worker_emergency.py
+
+# Test lane assistance worker  
+podman run --rm localhost/example_python_workload:0.1 python3 workers/lane/worker_lane.py
+
+# Test pedestrian detection worker
+podman run --rm localhost/example_python_workload:0.1 python3 workers/pedestrian/worker_pedestrian.py
+```
+
+### Deploy with Ankaios
+```bash
+# Deploy all workers using the manifest file
+ank apply manifest.yaml
+
+# Check workload status
+ank get workloads
+
+# Monitor specific worker logs
+ank logs EmergencyStop --follow
+ank logs LaneAssistance --follow
+ank logs PedestrianDetection --follow
+```
+
+## Container Configuration
+
+The application is configured to run with Podman through:
+- **Dockerfile**: Optimized for Podman with non-root user and security best practices
+- **manifest.yaml**: Specifies `runtime: podman` and container image
+- **Security**: Runs as non-root user `appuser` for enhanced security
+
+## Podman Advantages
+- **Rootless operation**: Enhanced security without requiring root privileges
+- **Systemd integration**: Better integration with system services
+- **Docker compatibility**: Drop-in replacement for Docker commands
+- **No daemon**: Simpler architecture without background daemon process

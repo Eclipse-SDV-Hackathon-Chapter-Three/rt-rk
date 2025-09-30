@@ -1,0 +1,25 @@
+apiVersion: v0.1
+workloads:
+  PedestrianDetection:
+    runtime: podman
+    restartPolicy: ALWAYS
+    agent: agent_A
+    runtimeConfig: |
+      image: localhost/example_python_workload:0.1
+      commandArgs: ["python3", "workers/pedestrian/worker_pedestrian.py"]
+  
+  EmergencyStop:
+    runtime: podman
+    restartPolicy: ALWAYS
+    agent: agent_A
+    runtimeConfig: |
+      image: localhost/example_python_workload:0.1
+      commandArgs: ["python3", "workers/emergency/worker_emergency.py"]
+  
+  LaneAssistance:
+    runtime: podman
+    restartPolicy: ALWAYS
+    agent: agent_A
+    runtimeConfig: |
+      image: localhost/example_python_workload:0.1
+      commandArgs: ["python3", "workers/lane/worker_lane.py"]
