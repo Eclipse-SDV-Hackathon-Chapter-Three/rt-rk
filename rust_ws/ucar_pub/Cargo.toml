@@ -1,0 +1,22 @@
+[package]
+name = "ucar_pub"
+version = "0.1.0"
+edition = "2024"
+
+[[bin]]
+name = "ucar_pub"
+path = "src/ucar_pub.rs"
+
+[[bin]]
+name = "ucar_sub"
+path = "src/ucar_sub.rs"
+
+[dependencies]
+tokio = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+log = { workspace = true }
+env_logger = { workspace = true }
+up-rust = { workspace = true }
+up-transport-zenoh = { workspace = true }
+zenoh = { workspace = true }
