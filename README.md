@@ -51,7 +51,6 @@ graph TB
     E --> H[Vehicle Control Interface]
     F --> H
     G --> H
-    I[Supervisor Process] --> D
 ```
 
 # 2. How Do You Work
