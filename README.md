@@ -3,7 +3,7 @@
 # 1. Your Team at a Glance
 
 ## Team Name / Tagline  
-**RT-RK Innovation Squad** - *"Driving the Future of Connected Mobility"*
+**RT-RK** - *"Driving the Future of Connected Mobility"*
 
 ## Team Members  
 | Name | GitHub Handle | Role(s) |
