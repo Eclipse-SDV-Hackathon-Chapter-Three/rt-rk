@@ -23,7 +23,7 @@ pretty_env_logger ={ version = "0.4.0" }
 ctrlc = {version = "3.4"}
 carla-data-serde = { git = "https://github.com/Eclipse-SDV-Hackathon-Chapter-Three/carla-data-serde.git", branch = "main" }
 
-ego-vehicle = { path = "../../sdv_lab/ego-vehicle/uprotocol-sensors" }
+ego-vehicle = { path = "https://github.com/Eclipse-SDV-Hackathon-Chapter-Three/sdv_lab.git" }
 
 [patch.crates-io]
 # Fix for CARLA action buffer type mismatch
