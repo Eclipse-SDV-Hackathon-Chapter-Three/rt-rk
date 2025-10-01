@@ -20,3 +20,4 @@ env_logger = { workspace = true }
 up-rust = { workspace = true }
 up-transport-zenoh = { workspace = true }
 zenoh = { workspace = true }
+ego-vehicle = { workspace = true }
