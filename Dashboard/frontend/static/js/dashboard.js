@@ -45,6 +45,14 @@ class VehicleDashboard {
             document.getElementById('distBar4'),
             document.getElementById('distBar5')
         ];
+        this.distanceBarContainer = document.querySelector('.vehicle-view-container .distance-bars');
+        this.distanceBarLevelClasses = [
+            'level-safe-double',
+            'level-safe-single',
+            'level-warning-outer',
+            'level-warning-inner',
+            'level-danger'
+        ];
         
         // Status elements
         this.connectionDot = document.getElementById('connectionDot');
@@ -168,38 +176,59 @@ class VehicleDashboard {
     }
 
     updateDistanceBars(distance) {
-        // Clear all bars
-        this.distanceBars.forEach(bar => {
-            bar.classList.remove('active', 'warning', 'critical');
-        });
-        
-        // Determine how many bars to light based on distance
-        // 0-10m: all red (critical)
-        // 10-25m: yellow (warning)
-        // 25-50m: green (active)
-        let activeBarCount = 0;
-        let barClass = 'active';
-        
-        if (distance <= 10) {
-            activeBarCount = 5;
-            barClass = 'critical';
-        } else if (distance <= 25) {
-            activeBarCount = Math.max(1, Math.floor(5 - (distance - 10) / 3));
-            barClass = 'warning';
-        } else if (distance <= 50) {
-            activeBarCount = Math.max(1, Math.floor(5 - (distance - 25) / 5));
-            barClass = 'active';
+        const normalized = Number(distance);
+        const container = this.distanceBarContainer;
+
+        if (!container || !Number.isFinite(normalized) || normalized < 0) {
+            this.clearDistanceBars();
+            return;
         }
-        
-        // Light up the bars
-        for (let i = 0; i < activeBarCount && i < this.distanceBars.length; i++) {
-            this.distanceBars[i].classList.add(barClass);
+
+        // Reset container states and per-bar classes
+        if (this.distanceBarLevelClasses?.length) {
+            container.classList.remove(...this.distanceBarLevelClasses);
+        }
+
+        this.distanceBars.forEach(bar => {
+            if (bar) {
+                bar.classList.remove('safe', 'warning', 'danger', 'active', 'critical');
+            }
+        });
+
+        const applyState = (indices, className, levelClass) => {
+            indices.forEach(index => {
+                const bar = this.distanceBars[index];
+                if (bar) {
+                    bar.classList.add(className);
+                }
+            });
+            if (levelClass) {
+                container.classList.add(levelClass);
+            }
+        };
+
+        if (normalized >= 25) {
+            applyState([4, 3], 'safe', 'level-safe-double');
+        } else if (normalized >= 18) {
+            applyState([3], 'safe', 'level-safe-single');
+        } else if (normalized >= 11) {
+            applyState([2], 'warning', 'level-warning-outer');
+        } else if (normalized > 3) {
+            applyState([1], 'warning', 'level-warning-inner');
+        } else if (normalized >= 0) {
+            applyState([0], 'danger', 'level-danger');
         }
     }
 
     clearDistanceBars() {
+        if (this.distanceBarLevelClasses?.length && this.distanceBarContainer) {
+            this.distanceBarContainer.classList.remove(...this.distanceBarLevelClasses);
+        }
+
         this.distanceBars.forEach(bar => {
-            bar.classList.remove('active', 'warning', 'critical');
+            if (bar) {
+                bar.classList.remove('safe', 'warning', 'danger', 'active', 'critical');
+            }
         });
     }
 

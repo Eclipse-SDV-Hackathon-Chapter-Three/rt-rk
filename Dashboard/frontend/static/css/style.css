@@ -493,7 +493,57 @@ body {
     z-index: 10;
 }
 
+/* Container state styling for WiFi arcs */
+.vehicle-view-container .distance-bars.level-safe-double .distance-bar:nth-child(4),
+.vehicle-view-container .distance-bars.level-safe-double .distance-bar:nth-child(5) {
+    border-top-color: #22c55e;
+    box-shadow: 0 0 10px rgba(34, 197, 94, 0.7);
+}
+
+.vehicle-view-container .distance-bars.level-safe-single .distance-bar:nth-child(4) {
+    border-top-color: #22c55e;
+    box-shadow: 0 0 10px rgba(34, 197, 94, 0.7);
+}
+
+.vehicle-view-container .distance-bars.level-warning-outer .distance-bar:nth-child(3) {
+    border-top-color: #f59e0b;
+    box-shadow: 0 0 8px rgba(245, 158, 11, 0.6);
+}
+
+.vehicle-view-container .distance-bars.level-warning-inner .distance-bar:nth-child(2) {
+    border-top-color: #f59e0b;
+    box-shadow: 0 0 8px rgba(245, 158, 11, 0.6);
+}
+
+.vehicle-view-container .distance-bars.level-danger .distance-bar:nth-child(1) {
+    border-top-color: #ef4444;
+    box-shadow: 0 0 12px rgba(239, 68, 68, 0.8);
+    animation: criticalPulse 0.6s infinite;
+}
+
+.vehicle-view-container .distance-bars.level-safe-double::before,
+.vehicle-view-container .distance-bars.level-safe-single::before {
+    background: #22c55e;
+    box-shadow: 0 0 6px rgba(34, 197, 94, 0.6);
+}
+
+.vehicle-view-container .distance-bars.level-warning-outer::before,
+.vehicle-view-container .distance-bars.level-warning-inner::before {
+    background: #f59e0b;
+    box-shadow: 0 0 6px rgba(245, 158, 11, 0.6);
+}
+
+.vehicle-view-container .distance-bars.level-danger::before {
+    background: #ef4444;
+    box-shadow: 0 0 8px rgba(239, 68, 68, 0.8);
+}
+
 /* Active states - distance-based coloring */
+.distance-bar.safe {
+    border-top-color: #22c55e;
+    box-shadow: 0 0 8px rgba(34, 197, 94, 0.6);
+}
+
 .distance-bar.active {
     border-top-color: #22c55e;
     box-shadow: 0 0 8px rgba(34, 197, 94, 0.6);
@@ -812,6 +862,11 @@ body {
     background: rgba(100, 116, 139, 0.3);
     border-radius: 2px;
     transition: all 0.3s ease;
+}
+
+.distance-bar.safe {
+    background: #22c55e;
+    box-shadow: 0 0 8px rgba(34, 197, 94, 0.6);
 }
 
 .distance-bar.active {
