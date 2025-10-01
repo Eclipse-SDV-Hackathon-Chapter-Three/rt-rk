@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  emergency-worker:
+    build:
+      context: ./workers/emergency
+      dockerfile: Dockerfile
+    container_name: emergency-worker
+    restart: unless-stopped
+    networks:
+      - adas-network
+
+  lane-worker:
+    build:
+      context: ./workers/lane
+      dockerfile: Dockerfile
+    container_name: lane-worker
+    restart: unless-stopped
+    networks:
+      - adas-network
+
+  pedestrian-worker:
+    build:
+      context: ./workers/pedestrian
+      dockerfile: Dockerfile
+    container_name: pedestrian-worker
+    restart: unless-stopped
+    networks:
+      - adas-network
+
+  rona-worker:
+    build:
+      context: ./workers/rona
+      dockerfile: Dockerfile
+    container_name: rona-worker
+    restart: unless-stopped
+    networks:
+      - adas-network
+
+networks:
+  adas-network:
+    driver: bridge

@@ -1,5 +1,6 @@
-FROM python:3.11-slim-bookworm as base
+FROM python:3.11-slim-bookworm
 
+# Install system dependencies
 RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
     && apt-get -y install \
     git \
@@ -13,14 +14,20 @@ RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
     libxext6 \
     libxrender-dev \
     libgomp1 \
-    # you can add other dependencies here
-    # ..
-    # Cleanup
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /usr/src/app
 
+# Copy and install requirements
 COPY requirements.txt ./
-RUN pip install --upgrade pip setuptools wheel
-RUN pip install -r requirements.txt
-COPY workers/ ./workers/
+RUN pip install --upgrade pip setuptools wheel && \
+    pip install -r requirements.txt
+
+# Copy lane worker code
+COPY . ./
+
+# Set the Python path
+ENV PYTHONPATH="/usr/src/app:${PYTHONPATH}"
+
+# Run the lane worker
+CMD ["python", "worker_lane.py"]
