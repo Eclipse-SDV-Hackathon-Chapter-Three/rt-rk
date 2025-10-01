@@ -193,6 +193,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
 
+    // Skip the ego vehicle discovery for now due to CARLA binding issues
+    // Just proceed with sensor setup
+    log::info!("Skipping ego vehicle discovery due to CARLA binding issues");
+    
     // Initialize uProtocol logging
     UPTransportZenoh::try_init_log_from_env();
 
@@ -208,47 +212,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             .build()
             .await?,
     );
-
-    // -- Set up Sensor for Image -- (generic)
-    // let (_image_comms, _ego_vehicle_sensor_image_id, _image_sensor_keepalive) =
-    //     if let Some(ego_vehicle_sensor_image_role) = args.ego_vehicle_sensor_image_role {
-    //         let uuri = uri_provider.get_resource_uri(RESOURCE_IMAGE_SENSOR);
-
-    //         // Encoder: ImageEvent -> Vec<u8> (borrow-only)
-    //         let encode = |evt: ImageEvent| {
-    //             // Borrow the event so the payload can serialize without copying the image buffer
-    //             let serde_evt: ImageEventSerBorrowed<'_> = (&evt).into();
-    //             serde_json::to_vec(&serde_evt)
-    //                 .map_err(|e| -> Box<dyn std::error::Error + Send + Sync> { Box::new(e) })
-    //         };
-
-    //         let (_image_comms, image_actor_id, _image_sensor_keepalive) =
-    //             setup_sensor_with_transport(
-    //                 &carla_world,
-    //                 &running,
-    //                 &ego_vehicle_sensor_image_role,
-    //                 "image_sensor",
-    //                 POLLING_EGO_MS,
-    //                 ImageFactory,
-    //                 uuri,
-    //                 encode,
-    //                 UPayloadFormat::UPAYLOAD_FORMAT_JSON,
-    //                 Arc::clone(&transport),
-    //             )
-    //             .await
-    //             .expect("Unable to set up obstacle detection sensor with transport");
-
-    //         let _ego_vehicle_sensor_image_id = Some(image_actor_id);
-
-    //         (
-    //             Some(_image_comms),
-    //             Some(_ego_vehicle_sensor_image_id),
-    //             Some(_image_sensor_keepalive),
-    //         )
-    //     } else {
-    //         (None, None, None)
-    //     };
-
 
     // -- Set up Sensor for Image -- (generic)
     let (_image_comms, _ego_vehicle_sensor_image_id, _image_sensor_keepalive) = {
@@ -288,6 +251,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         )
     };
 
+    // Keep the program running
+    while running.load(Ordering::SeqCst) {
+        tokio::time::sleep(Duration::from_millis(100)).await;
+    }
 
     Ok(())
 }

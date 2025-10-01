@@ -9,19 +9,7 @@ This script shows how to:
 3. Start listening for messages asynchronously
 """
 
-#!/usr/bin/env python3
-"""
-Example script demonstrating how to use the ucar_python module
-to receive messages from the Rust ucar_sub subscriber.
-
-This script shows how to:
-1. Initialize the ucar subscriber
-2. Set up a callback function to handle received messages
-3. Start listening for messages
-"""
-
 import signal
-import sys
 import time
 from typing import Any, Dict
 
