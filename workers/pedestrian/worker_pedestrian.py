@@ -4,18 +4,8 @@ import logging
 import signal
 import os
 
-# POTPUNO ONEMOGUĆI QT I FORSIRAJ NON-GUI MODE
-os.environ['OPENCV_VIDEOIO_PRIORITY'] = 'ffmpeg,v4l2'
-os.environ['OPENCV_VIDEOIO_PRIORITY_MSMF'] = '0'
-os.environ['OPENCV_LOG_LEVEL'] = 'ERROR'
-os.environ['DISPLAY'] = ''
-
-import cv2
-# Onemogući threading i GUI features
-cv2.setNumThreads(0)
-cv2.setUseOptimized(True)
-
 from ultralytics import YOLO
+from network_interface import receive_frame, send_warning_data
 
 # Configure logging
 logging.basicConfig(
@@ -31,48 +21,34 @@ class PedestrianDetector:
         self.confidence_threshold = confidence_threshold
         self.model = None
         self.current_frame = None
-        
+        self.model = YOLO(self.model_path)
+
         logger.info(f"Initializing PedestrianDetector with model: {model_path}")
-        self._load_model()
     
-    def _load_model(self):
-        """Load the YOLO model"""
-        try:
-            self.model = YOLO(self.model_path)
-            logger.info(f"Successfully loaded YOLO model: {self.model_path}")
-        except Exception as e:
-            logger.error(f"Failed to load YOLO model: {e}")
-            raise
-    
-    def process_video(self, video_path):
-        """Process entire video file for pedestrian detection"""
-        logger.info(f"Processing video: {video_path}")
-                
-        # Open video file
-        cap = cv2.VideoCapture(video_path)
-        
-        # Check if video opened successfully
-        if not cap.isOpened():
-            logger.error(f"Could not open video file {video_path}")
-            return False
+    def process_frame(self):
+        """Process frames received from network interface for pedestrian detection"""
+        logger.info("Starting frame processing from network interface")
         
         try:
             while True:
-                ret, frame = cap.read()
-                if not ret:
-                    logger.info("End of video or failed to read frame")
+                # Get frame from network interface
+                frame = receive_frame()
+                
+                # If no frame received, break the loop
+                if frame is None:
+                    logger.info("No frame received from network interface")
                     break
       
                 warning = self.detect_pedestrians_in_frame(frame)
                 
                 if warning:
                     logger.warning(warning)
+                    # Send warning through network interface
+                    send_warning_data(warning)
 
         except Exception as e:
-            logger.error(f"Error processing video: {e}")
+            logger.error(f"Error processing frames from network: {e}")
             return False
-        finally:
-            cap.release()
         
         return True
     
@@ -124,7 +100,7 @@ class PedestrianDetectionWorker:
         self.running = True
         self.cycle_time = 1.0  # seconds between cycles
         self.detector = None
-        self.video_path = "ped_det_1.avi"  # Default video path
+        self.network_interface = None
         self.setup_signal_handlers()
         
     def setup_signal_handlers(self):
@@ -159,18 +135,17 @@ class PedestrianDetectionWorker:
             
             logger.info("Processing pedestrian detection cycle")
             
-            # Process the video for pedestrian detection
-            success = self.detector.process_video(self.video_path)
+            # Process the frame for pedestrian detection
+            success = self.detector.process_frame()
             
             if success:
-                detection_count = self.detector.get_detection_count()
-                logger.info(f"Successfully processed video. Total frames: {detection_count}")
-                
+                logger.info(f"Successfully processed frame")
+
                 # Optional: Save the last processed frame
                 # self.detector.save_current_frame("output_frame.jpg")
             else:
-                logger.error("Failed to process video")
-            
+                logger.error("Failed to process frame")
+
         except Exception as e:
             logger.error(f"Error in processing cycle: {e}")
     
