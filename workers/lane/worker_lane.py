@@ -2,6 +2,7 @@ import time
 import sys
 import logging
 import signal
+from src.lane_detection_system import LaneDetectionSystem
 
 # Configure logging
 logging.basicConfig(
@@ -31,7 +32,7 @@ class LaneAssistanceWorker:
         """Initialize the worker - setup connections, load models, etc."""
         logger.info("Initializing LaneAssistance worker")
         # Add your initialization code here
-        time.sleep(0.5)  # Simulate initialization time
+        self.system = LaneDetectionSystem(width=640, height=360, debugging=False)
         logger.info("LaneAssistance worker initialized successfully")
     
     def process_cycle(self):
@@ -40,8 +41,7 @@ class LaneAssistanceWorker:
             # Add your main processing logic here
             logger.info("Processing lane assistance cycle")
             
-            # Simulate processing time
-            time.sleep(0.2)
+            self.system.process_network_frame()
             
             # Example: analyze camera feed, detect lane markings, calculate corrections
             # lane_data = self.detect_lane_markings()
