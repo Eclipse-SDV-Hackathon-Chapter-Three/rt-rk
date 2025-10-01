@@ -1,4 +1,5 @@
 ankaios-sdk==0.6.0
+ultralytics
 
 # Lane Detection (LA) System Requirements
 # Computer Vision and Image Processing

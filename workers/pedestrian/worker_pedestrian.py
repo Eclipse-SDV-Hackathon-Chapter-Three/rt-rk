@@ -2,6 +2,10 @@ import time
 import sys
 import logging
 import signal
+import os
+
+from ultralytics import YOLO
+from network_interface import receive_frame, send_warning_data
 
 # Configure logging
 logging.basicConfig(
@@ -10,10 +14,93 @@ logging.basicConfig(
 )
 logger = logging.getLogger('PedestrianDetection')
 
+class PedestrianDetector:
+    def __init__(self, model_path="yolo11n.pt", confidence_threshold=0.7):
+        """Initialize the pedestrian detector with YOLO model"""
+        self.model_path = model_path
+        self.confidence_threshold = confidence_threshold
+        self.model = None
+        self.current_frame = None
+        self.model = YOLO(self.model_path)
+
+        logger.info(f"Initializing PedestrianDetector with model: {model_path}")
+    
+    def process_frame(self):
+        """Process frames received from network interface for pedestrian detection"""
+        logger.info("Starting frame processing from network interface")
+        
+        try:
+            while True:
+                # Get frame from network interface
+                frame = receive_frame()
+                
+                # If no frame received, break the loop
+                if frame is None:
+                    logger.info("No frame received from network interface")
+                    break
+      
+                warning = self.detect_pedestrians_in_frame(frame)
+                
+                if warning:
+                    logger.warning(warning)
+                    # Send warning through network interface
+                    send_warning_data(warning)
+
+        except Exception as e:
+            logger.error(f"Error processing frames from network: {e}")
+            return False
+        
+        return True
+    
+    def detect_pedestrians_in_frame(self, frame):
+        """Detect pedestrians in a single frame"""
+        if self.model is None:
+            logger.error("Model not loaded")
+            return []
+        
+        try:
+            # Run inference with verbose disabled
+            results = self.model(frame, verbose=False)
+            
+            # Start with original frame
+            annotated_frame = frame.copy()
+            self.current_frame = annotated_frame
+            
+            # Get frame dimensions
+            _, frame_width = frame.shape[:2]
+            frame_center_x = frame_width // 2
+                        
+            # Check for pedestrians and determine their position
+            for box in results[0].boxes:
+                cls_id = int(box.cls[0])
+                conf = float(box.conf[0])
+                
+                if self.model.names[cls_id] == "person" and conf > self.confidence_threshold:
+                    # Get bounding box coordinates
+                    x1, _, x2, _ = box.xyxy[0].tolist()
+                    
+                    # Calculate center of bounding box
+                    bbox_center_x = (x1 + x2) / 2
+                    
+                    # Determine which side of the frame the pedestrian is on
+                    if bbox_center_x < frame_center_x:
+                        return "Warning, pedestrian on the left side!"
+                    else:
+                        return "Warning, pedestrian on the right side!"
+
+            return None
+
+        except Exception as e:
+            logger.error(f"Error detecting pedestrians in frame: {e}")
+            return []
+    
+
 class PedestrianDetectionWorker:
     def __init__(self):
         self.running = True
         self.cycle_time = 1.0  # seconds between cycles
+        self.detector = None
+        self.network_interface = None
         self.setup_signal_handlers()
         
     def setup_signal_handlers(self):
@@ -30,30 +117,46 @@ class PedestrianDetectionWorker:
     def initialize(self):
         """Initialize the worker - setup connections, load models, etc."""
         logger.info("Initializing PedestrianDetection worker")
-        # Add your initialization code here
-        time.sleep(0.5)  # Simulate initialization time
-        logger.info("PedestrianDetection worker initialized successfully")
+        
+        try:
+            # Initialize the pedestrian detector
+            self.detector = PedestrianDetector(model_path="yolo11n.pt", confidence_threshold=0.7)
+            logger.info("PedestrianDetection worker initialized successfully")
+        except Exception as e:
+            logger.error(f"Failed to initialize detector: {e}")
+            raise
     
     def process_cycle(self):
         """Main processing cycle - implement your worker logic here"""
         try:
-            # Add your main processing logic here
+            if self.detector is None:
+                logger.error("Detector not initialized")
+                return
+            
             logger.info("Processing pedestrian detection cycle")
             
-            # Simulate processing time
-            time.sleep(0.1)
+            # Process the frame for pedestrian detection
+            success = self.detector.process_frame()
             
-            # Example: detect pedestrians, analyze camera feed, etc.
-            # result = self.detect_pedestrians()
-            # self.publish_results(result)
-            
+            if success:
+                logger.info(f"Successfully processed frame")
+
+                # Optional: Save the last processed frame
+                # self.detector.save_current_frame("output_frame.jpg")
+            else:
+                logger.error("Failed to process frame")
+
         except Exception as e:
             logger.error(f"Error in processing cycle: {e}")
     
     def cleanup(self):
         """Cleanup resources before shutdown"""
         logger.info("Cleaning up PedestrianDetection worker")
-        # Add cleanup code here
+        
+        # Clean up detector resources
+        if self.detector:
+            self.detector = None
+            logger.info("Detector resources cleaned up")
         
     def run(self):
         """Main worker loop"""
