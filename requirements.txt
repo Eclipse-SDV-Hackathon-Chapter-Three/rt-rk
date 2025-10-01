@@ -1,3 +1,2 @@
 ankaios-sdk==0.6.0
 ultralytics
-opencv-python-headless
