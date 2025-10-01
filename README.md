@@ -159,3 +159,5 @@ ank logs EmergencyStop --follow
 ank logs LaneAssistance --follow
 ank logs PedestrianDetection --follow
 ```
+
+sudo podman run --privileged -it --rm --net host --cap-add=NET_RAW --ipc host --entrypoint bash simple-zenoh-sub:latest

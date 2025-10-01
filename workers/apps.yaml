@@ -1,0 +1,48 @@
+apiVersion: v0.1
+workloads:
+  nginx:
+    runtime: podman
+    agent: agent_B
+    restart: true
+    updateStrategy: AT_MOST_ONCE
+    accessRights:
+      allow: []
+      deny: []
+    tags:
+      - key: owner
+        value: Ankaios team
+    runtimeConfig: |
+      image: docker.io/nginx:latest
+      commandOptions: ["-p", "8081:80"]
+  
+  simple-zenoh-sub2:
+    runtime: podman
+    agent: agent_C
+    restart: true
+    updateStrategy: AT_MOST_ONCE
+    accessRights:
+      allow: []
+      deny: []
+    tags:
+      - key: owner
+        value: Ankaios team
+    runtimeConfig: |
+      image: docker.io/sachinkum0009/simple-zenoh-sub:v0.1
+      commandOptions: ["--privileged", "-it", "--rm", "--net", "host", "--cap-add=NET_RAW", "--ipc", "host"]
+      commandArgs: ["--router", "192.168.33.243"]
+  
+  simple-zenoh-pub2:
+    runtime: podman
+    agent: agent_C
+    restart: true
+    updateStrategy: AT_MOST_ONCE
+    accessRights:
+      allow: []
+      deny: []
+    tags:
+      - key: owner
+        value: Ankaios team
+    runtimeConfig: |
+      image: docker.io/sachinkum0009/simple-zenoh-pub:v0.1
+      commandOptions: ["--privileged", "-it", "--rm", "--net", "host", "--cap-add=NET_RAW", "--ipc", "host"]
+      commandArgs: ["--router", "192.168.33.243"]
