@@ -7,12 +7,20 @@ Ova skripta omogućava ručno upravljanje vozilom pomoću WASD tastera
 i prikazuje live video sa prednje kamere.
 
 Controls:
-- W: Gas (ubrzavanje)
-- S: Kočnica/nazad
+- W: Gas (napred u brzini, nazad u rikveru)
+- S: Kočnica (uvek)
 - A: Skretanje levo
 - D: Skretanje desno
 - Q: Ručna kočnica
+- R: Prebaci u veću brzinu (iz rikverca u 1., zatim 1-6)
+- F: Prebaci u manju brzinu (6-1, iz 1. u rikverc)
+- Shift+R: Direktno prebaci u rikverc
 - ESC: Izlaz
+
+Gear System:
+- 6 brzina napred (1-6) sa ograničenjima brzine
+- Rikverc sa ograničenjem od 20 km/h
+- W taster radi u oba smera zavisno od trenutne brzine
 
 Requirements:
 - CARLA simulator pokrenut
@@ -22,10 +30,12 @@ Requirements:
 
 import argparse
 import time
+import random
 
 from src.carla_setup import CarlaSetup
 from src.manual_control import ManualControl
 from src.zenoh_publisher import ZenohPublisher
+from src.zenoh_subscriber import ZenohSubscriber
 
 def main():
     """Main function to run CARLA manual driving."""
@@ -35,9 +45,10 @@ def main():
     parser.add_argument('--port', default=2000, type=int, help='CARLA server port')
     args = parser.parse_args()
     
-    # Initialize CARLA setup and Zenoh publisher
+    # Initialize CARLA setup, Zenoh publisher and ADAS subscriber
     carla_setup = CarlaSetup(args.host, args.port)
     zenoh_publisher = ZenohPublisher(base_topic='carla/tesla', publish_interval=0.1)
+    adas_subscriber = ZenohSubscriber(base_topic='adas')
     manual_control = None
     
     try:
@@ -52,6 +63,12 @@ def main():
         else:
             print("⚠️  Zenoh publisher nije dostupan - nastavljamo bez njega")
         
+        # Connect ADAS subscriber
+        if adas_subscriber.connect():
+            print("✅ ADAS subscriber povezan")
+        else:
+            print("⚠️  ADAS subscriber nije dostupan - nastavljamo bez njega")
+        
         # Setup synchronous mode
         carla_setup.setup_synchronous_mode(fps=30)
         
@@ -59,8 +76,8 @@ def main():
         vehicle = carla_setup.spawn_vehicle('vehicle.tesla.model3')
         world = carla_setup.get_world()
         
-        # Create manual control instance
-        manual_control = ManualControl(world, vehicle)
+        # Create manual control instance with ADAS subscriber and carla_setup
+        manual_control = ManualControl(world, vehicle, adas_subscriber, carla_setup)
         
         # Setup camera with callback to manual control AND Zenoh
         def camera_callback(image_array):
@@ -91,14 +108,24 @@ def main():
         
         print("Rezolucija: 640x360")
         print("Senzori: Obstacle (40m), Collision Detection")
-        print("📡 Zenoh Topics:")
+        print("📡 Zenoh Publisher Topics:")
         for topic_name, topic_key in zenoh_publisher.get_topics().items():
             print(f"   {topic_name}: {topic_key}")
+        print("🚗 ADAS Subscriber Topics:")
+        for topic_name, topic_key in adas_subscriber.get_topics().items():
+            print(f"   {topic_name}: {topic_key}")
         print("Kontrole: W-Gas, S-Brake, A/D-Steer, Q-HandBrake, ESC-Exit")
+        print("Menjači: R-Veća brzina/Izlaz iz rikverca, F-Manja brzina/Ulazak u rikverc")
+        print("🚶 Pešaci: Spawnuju se ispred vozila u smeru kretanja (70%) i sa strana (30%)")
+        print("ADAS: Lane Assist i Emergency Brake mogu override-ovati vozača")
         print("Sačekajte da se pojavi prozor sa kamerom...")
         
         # Wait for camera to stabilize
         time.sleep(3)
+        
+        # Spawn initial pedestrians
+        carla_setup.spawn_pedestrians_around_vehicle(5)
+        print(f"🚶 Spawnovano {carla_setup.get_pedestrian_count()} pešaka oko vozila")
         
         # Create a thread to periodically update vehicle data for Zenoh
         import threading
@@ -110,8 +137,45 @@ def main():
                 except:
                     break
         
+        # Create a thread for pedestrian management
+        def manage_pedestrians():
+            last_spawn_time = time.time()
+            last_cleanup_time = time.time()
+            
+            while True:
+                try:
+                    current_time = time.time()
+                    
+                    # Spawn new pedestrians every 8-15 seconds
+                    if current_time - last_spawn_time > random.uniform(8, 15):
+                        # 70% chance for front spawning, 30% for side spawning
+                        if random.random() < 0.7:
+                            spawn_count = random.randint(1, 2)
+                            carla_setup.spawn_pedestrians_around_vehicle(spawn_count)
+                            print(f"🚶 Dodano {spawn_count} pešaka ispred vozila (ukupno: {carla_setup.get_pedestrian_count()})")
+                        else:
+                            left_count = random.randint(0, 1)
+                            right_count = random.randint(0, 1)
+                            if left_count > 0 or right_count > 0:
+                                carla_setup.spawn_pedestrians_at_sides(left_count, right_count)
+                                print(f"🚶 Dodano {left_count + right_count} pešaka sa strana (ukupno: {carla_setup.get_pedestrian_count()})")
+                        
+                        last_spawn_time = current_time
+                    
+                    # Cleanup distant pedestrians every 12 seconds
+                    if current_time - last_cleanup_time > 12:
+                        carla_setup.cleanup_distant_pedestrians()
+                        last_cleanup_time = current_time
+                    
+                    time.sleep(1)  # Check every second
+                except:
+                    break
+        
         vehicle_thread = threading.Thread(target=update_vehicle_data, daemon=True)
+        pedestrian_thread = threading.Thread(target=manage_pedestrians, daemon=True)
+        
         vehicle_thread.start()
+        pedestrian_thread.start()
         
         # Start manual control
         manual_control.run()
@@ -120,6 +184,8 @@ def main():
         print(f"Greška: {e}")
     finally:
         # Cleanup resources
+        if 'adas_subscriber' in locals():
+            adas_subscriber.disconnect()
         if 'zenoh_publisher' in locals():
             zenoh_publisher.disconnect()
         carla_setup.cleanup()

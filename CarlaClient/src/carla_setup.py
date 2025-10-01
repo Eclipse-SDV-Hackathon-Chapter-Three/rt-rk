@@ -39,6 +39,11 @@ class CarlaSetup:
         self.obstacle_callback = None
         self.collision_callback = None
         
+        # Pedestrian management
+        self.spawned_pedestrians = []
+        self.max_pedestrians = 15
+        self.pedestrian_spawn_distance = 50.0  # meters around vehicle
+        
     def _setup_logging(self):
         """Setup logging system."""
         logging.basicConfig(
@@ -284,7 +289,6 @@ class CarlaSetup:
             collision_data = {
                 'frame': event.frame,
                 'timestamp': event.timestamp,
-                'actor': event.other_actor,
                 'actor_id': event.other_actor.id if event.other_actor else None,
                 'actor_type': event.other_actor.type_id if event.other_actor else 'unknown',
                 'impulse': {
@@ -318,6 +322,9 @@ class CarlaSetup:
             self.vehicle.destroy()
             self.logger.info("Vozilo uništeno")
         
+        # Cleanup pedestrians
+        self.cleanup_all_pedestrians()
+        
         # Resetuj sinhronizovan mod
         if self.world:
             settings = self.world.get_settings()
@@ -346,3 +353,206 @@ class CarlaSetup:
     def get_collision_sensor(self):
         """Get the collision sensor instance."""
         return self.collision_sensor
+
+    def spawn_pedestrians_around_vehicle(self, count=3):
+        """
+        Spawn pedestrians in front of the vehicle in its movement direction.
+        
+        Args:
+            count: Number of pedestrians to spawn
+        """
+        if not self.vehicle or not self.world:
+            self.logger.warning("Vehicle ili world nije inicijalizovan")
+            return
+        
+        # Get vehicle location and rotation
+        vehicle_transform = self.vehicle.get_transform()
+        vehicle_location = vehicle_transform.location
+        vehicle_rotation = vehicle_transform.rotation
+        
+        # Get pedestrian blueprints
+        blueprint_library = self.world.get_blueprint_library()
+        walker_blueprints = blueprint_library.filter('walker.pedestrian.*')
+        
+        if not walker_blueprints:
+            self.logger.warning("Nema dostupnih pedestrian blueprints")
+            return
+        
+        spawned_count = 0
+        attempts = 0
+        max_attempts = count * 10
+        
+        while spawned_count < count and attempts < max_attempts:
+            attempts += 1
+            
+            # Calculate forward direction from vehicle rotation
+            # Convert yaw to radians
+            yaw_rad = np.radians(vehicle_rotation.yaw)
+            
+            # Generate spawn position in front of vehicle with some randomness
+            forward_distance = random.uniform(15, self.pedestrian_spawn_distance)
+            
+            # Add some lateral offset (left/right from vehicle direction)
+            lateral_offset = random.uniform(-8, 8)  # meters left/right
+            
+            # Calculate position in front of vehicle
+            spawn_x = vehicle_location.x + forward_distance * np.cos(yaw_rad) + lateral_offset * np.cos(yaw_rad + np.pi/2)
+            spawn_y = vehicle_location.y + forward_distance * np.sin(yaw_rad) + lateral_offset * np.sin(yaw_rad + np.pi/2)
+            spawn_z = vehicle_location.z + 1.0  # Slightly above ground
+            
+            spawn_location = carla.Location(spawn_x, spawn_y, spawn_z)
+            
+            # Try to spawn pedestrian
+            if self._try_spawn_pedestrian(spawn_location, walker_blueprints):
+                spawned_count += 1
+        
+        self.logger.info(f"Spawnovano {spawned_count} pešaka ispred vozila")
+
+    def spawn_pedestrians_at_sides(self, left_count=1, right_count=1):
+        """
+        Spawn pedestrians specifically at left and right sides of vehicle.
+        
+        Args:
+            left_count: Number of pedestrians to spawn on left side
+            right_count: Number of pedestrians to spawn on right side
+        """
+        if not self.vehicle or not self.world:
+            self.logger.warning("Vehicle ili world nije inicijalizovan")
+            return
+        
+        # Get vehicle location and rotation
+        vehicle_transform = self.vehicle.get_transform()
+        vehicle_location = vehicle_transform.location
+        vehicle_rotation = vehicle_transform.rotation
+        
+        # Get pedestrian blueprints
+        blueprint_library = self.world.get_blueprint_library()
+        walker_blueprints = blueprint_library.filter('walker.pedestrian.*')
+        
+        if not walker_blueprints:
+            self.logger.warning("Nema dostupnih pedestrian blueprints")
+            return
+        
+        yaw_rad = np.radians(vehicle_rotation.yaw)
+        spawned_total = 0
+        
+        # Spawn on left side
+        for i in range(left_count):
+            if len(self.spawned_pedestrians) >= self.max_pedestrians:
+                break
+                
+            forward_distance = random.uniform(5, 25)
+            side_distance = random.uniform(3, 8)  # Left side distance
+            
+            # Calculate left side position (90 degrees counter-clockwise from forward)
+            spawn_x = vehicle_location.x + forward_distance * np.cos(yaw_rad) - side_distance * np.sin(yaw_rad)
+            spawn_y = vehicle_location.y + forward_distance * np.sin(yaw_rad) + side_distance * np.cos(yaw_rad)
+            spawn_z = vehicle_location.z + 1.0
+            
+            spawn_location = carla.Location(spawn_x, spawn_y, spawn_z)
+            
+            if self._try_spawn_pedestrian(spawn_location, walker_blueprints):
+                spawned_total += 1
+        
+        # Spawn on right side
+        for i in range(right_count):
+            if len(self.spawned_pedestrians) >= self.max_pedestrians:
+                break
+                
+            forward_distance = random.uniform(5, 25)
+            side_distance = random.uniform(3, 8)  # Right side distance
+            
+            # Calculate right side position (90 degrees clockwise from forward)
+            spawn_x = vehicle_location.x + forward_distance * np.cos(yaw_rad) + side_distance * np.sin(yaw_rad)
+            spawn_y = vehicle_location.y + forward_distance * np.sin(yaw_rad) - side_distance * np.cos(yaw_rad)
+            spawn_z = vehicle_location.z + 1.0
+            
+            spawn_location = carla.Location(spawn_x, spawn_y, spawn_z)
+            
+            if self._try_spawn_pedestrian(spawn_location, walker_blueprints):
+                spawned_total += 1
+        
+        self.logger.info(f"Spawnovano {spawned_total} pešaka sa strana vozila")
+
+    def _try_spawn_pedestrian(self, location, walker_blueprints):
+        """
+        Try to spawn a single pedestrian at given location.
+        
+        Args:
+            location: carla.Location where to spawn
+            walker_blueprints: Available walker blueprints
+            
+        Returns:
+            bool: True if spawn successful
+        """
+        try:
+            # Check if we have too many pedestrians already
+            if len(self.spawned_pedestrians) >= self.max_pedestrians:
+                return False
+            
+            # Select random pedestrian blueprint
+            walker_bp = random.choice(walker_blueprints)
+            
+            # Create spawn transform
+            spawn_transform = carla.Transform(location, carla.Rotation(yaw=random.uniform(0, 360)))
+            
+            # Try to spawn the pedestrian
+            pedestrian = self.world.try_spawn_actor(walker_bp, spawn_transform)
+            
+            if pedestrian:
+                self.spawned_pedestrians.append(pedestrian)
+                return True
+            
+        except Exception as e:
+            self.logger.warning(f"Greška pri spawnovanju pešaka: {e}")
+        
+        return False
+
+    def cleanup_distant_pedestrians(self):
+        """Remove pedestrians that are too far from the vehicle."""
+        if not self.vehicle:
+            return
+        
+        vehicle_location = self.vehicle.get_location()
+        cleanup_distance = self.pedestrian_spawn_distance * 1.5  # 1.5x spawn distance
+        
+        pedestrians_to_remove = []
+        
+        for pedestrian in self.spawned_pedestrians:
+            try:
+                ped_location = pedestrian.get_location()
+                distance = vehicle_location.distance(ped_location)
+                
+                if distance > cleanup_distance:
+                    pedestrians_to_remove.append(pedestrian)
+            except:
+                # Pedestrian might be already destroyed
+                pedestrians_to_remove.append(pedestrian)
+        
+        # Remove distant pedestrians
+        for pedestrian in pedestrians_to_remove:
+            try:
+                pedestrian.destroy()
+                self.spawned_pedestrians.remove(pedestrian)
+            except:
+                # Pedestrian might be already destroyed
+                if pedestrian in self.spawned_pedestrians:
+                    self.spawned_pedestrians.remove(pedestrian)
+        
+        if pedestrians_to_remove:
+            self.logger.info(f"Uklonjeno {len(pedestrians_to_remove)} udaljenih pešaka")
+
+    def get_pedestrian_count(self):
+        """Get current number of spawned pedestrians."""
+        return len(self.spawned_pedestrians)
+
+    def cleanup_all_pedestrians(self):
+        """Remove all spawned pedestrians."""
+        for pedestrian in self.spawned_pedestrians:
+            try:
+                pedestrian.destroy()
+            except:
+                pass  # Pedestrian might be already destroyed
+        
+        self.spawned_pedestrians.clear()
+        self.logger.info("Uklonjeni svi pešaci")
