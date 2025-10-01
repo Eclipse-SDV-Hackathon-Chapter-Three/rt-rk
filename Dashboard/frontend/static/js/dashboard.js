@@ -28,23 +28,23 @@ class VehicleDashboard {
         this.speedValue = document.getElementById('speedValue');
         this.rpmValue = document.getElementById('rpmValue');
         
-        // ADAS elements
+        // Modern ADAS elements
         this.leftLane = document.getElementById('leftLane');
         this.rightLane = document.getElementById('rightLane');
-        this.laneWarning = document.getElementById('laneWarning');
-        this.laneWarningText = document.getElementById('laneWarningText');
-        
-        this.emergencyWarning = document.getElementById('emergencyWarning');
-        this.emergencyWarningText = document.getElementById('emergencyWarningText');
-        this.obstacleDistance = document.getElementById('obstacleDistance');
-        this.obstacleIcon = document.getElementById('obstacleIcon');
-        
-        this.pedestrianWarning = document.getElementById('pedestrianWarning');
-        this.pedestrianWarningText = document.getElementById('pedestrianWarningText');
-        this.leftPedLight = document.getElementById('leftPedLight');
-        this.rightPedLight = document.getElementById('rightPedLight');
         this.leftPedestrian = document.getElementById('leftPedestrian');
         this.rightPedestrian = document.getElementById('rightPedestrian');
+        this.vehicleBody = document.getElementById('vehicleBody');
+        this.globalWarning = document.getElementById('globalWarning');
+        this.globalWarningText = document.getElementById('globalWarningText');
+        
+        // Distance bars
+        this.distanceBars = [
+            document.getElementById('distBar1'),
+            document.getElementById('distBar2'),
+            document.getElementById('distBar3'),
+            document.getElementById('distBar4'),
+            document.getElementById('distBar5')
+        ];
         
         // Status elements
         this.connectionDot = document.getElementById('connectionDot');
@@ -135,76 +135,54 @@ class VehicleDashboard {
     }
 
     updateLaneAssist(warning) {
-        const laneModule = document.querySelector('.lane-assist');
-        
         // Reset lane lines
         this.leftLane.classList.remove('warning');
         this.rightLane.classList.remove('warning');
-        this.laneWarning.classList.remove('active');
+        
+        let hasWarning = false;
         
         if (warning === 'LEFT') {
             this.leftLane.classList.add('warning');
-            this.laneWarning.classList.add('active');
-            this.laneWarningText.textContent = 'LEFT LANE WARNING';
-            laneModule.classList.add('active');
+            hasWarning = true;
         } else if (warning === 'RIGHT') {
             this.rightLane.classList.add('warning');
-            this.laneWarning.classList.add('active');
-            this.laneWarningText.textContent = 'RIGHT LANE WARNING';
-            laneModule.classList.add('active');
-        } else {
-            this.laneWarningText.textContent = 'No Warning';
-            laneModule.classList.remove('active');
+            hasWarning = true;
         }
+        
+        // Update global warning if there's a lane warning
+        this.updateGlobalWarning(hasWarning, hasWarning ? 'LANE WARNING' : null);
     }
 
     updateEmergencyStop(emergencyData) {
-        const emergencyModule = document.querySelector('.emergency-stop');
         const isActive = emergencyData.active;
         const distance = emergencyData.distance;
         
-        this.emergencyWarning.classList.toggle('active', isActive);
-        this.obstacleIcon.classList.toggle('active', isActive);
-        
         if (isActive) {
-            this.emergencyWarningText.textContent = `OBSTACLE DETECTED`;
-            this.obstacleDistance.textContent = distance.toFixed(1);
-            emergencyModule.classList.add('active');
-            
             // Update distance bars based on distance
             this.updateDistanceBars(distance);
+            this.updateGlobalWarning(true, `OBSTACLE ${distance.toFixed(1)}m`);
         } else {
-            this.emergencyWarningText.textContent = 'No Warning';
-            this.obstacleDistance.textContent = '-';
-            emergencyModule.classList.remove('active');
             this.clearDistanceBars();
+            this.updateGlobalWarning(false, null);
         }
     }
 
     updateDistanceBars(distance) {
-        const bars = [
-            document.getElementById('distBar1'),
-            document.getElementById('distBar2'),
-            document.getElementById('distBar3'),
-            document.getElementById('distBar4'),
-            document.getElementById('distBar5')
-        ];
-        
         // Clear all bars
-        bars.forEach(bar => {
-            bar.classList.remove('active', 'warning', 'danger');
+        this.distanceBars.forEach(bar => {
+            bar.classList.remove('active', 'warning', 'critical');
         });
         
         // Determine how many bars to light based on distance
-        // 0-10m: all red (danger)
+        // 0-10m: all red (critical)
         // 10-25m: yellow (warning)
-        // 25-50m: green (safe)
+        // 25-50m: green (active)
         let activeBarCount = 0;
         let barClass = 'active';
         
         if (distance <= 10) {
             activeBarCount = 5;
-            barClass = 'danger';
+            barClass = 'critical';
         } else if (distance <= 25) {
             activeBarCount = Math.max(1, Math.floor(5 - (distance - 10) / 3));
             barClass = 'warning';
@@ -214,50 +192,51 @@ class VehicleDashboard {
         }
         
         // Light up the bars
-        for (let i = 0; i < activeBarCount && i < bars.length; i++) {
-            bars[i].classList.add(barClass);
+        for (let i = 0; i < activeBarCount && i < this.distanceBars.length; i++) {
+            this.distanceBars[i].classList.add(barClass);
         }
     }
 
     clearDistanceBars() {
-        const bars = [
-            document.getElementById('distBar1'),
-            document.getElementById('distBar2'),
-            document.getElementById('distBar3'),
-            document.getElementById('distBar4'),
-            document.getElementById('distBar5')
-        ];
-        
-        bars.forEach(bar => {
-            bar.classList.remove('active', 'warning', 'danger');
+        this.distanceBars.forEach(bar => {
+            bar.classList.remove('active', 'warning', 'critical');
         });
     }
 
     updatePedestrianDetection(warning) {
-        const pedestrianModule = document.querySelector('.pedestrian-detect');
-        
         // Reset pedestrian indicators
-        this.leftPedLight.classList.remove('active');
-        this.rightPedLight.classList.remove('active');
-        this.leftPedestrian.classList.remove('warning');
-        this.rightPedestrian.classList.remove('warning');
-        this.pedestrianWarning.classList.remove('active');
+        this.leftPedestrian.classList.remove('detected');
+        this.rightPedestrian.classList.remove('detected');
+        
+        let hasWarning = false;
         
         if (warning === 'LEFT') {
-            this.leftPedLight.classList.add('active');
-            this.leftPedestrian.classList.add('warning');
-            this.pedestrianWarning.classList.add('active');
-            this.pedestrianWarningText.textContent = 'PEDESTRIAN LEFT';
-            pedestrianModule.classList.add('active');
+            this.leftPedestrian.classList.add('detected');
+            hasWarning = true;
         } else if (warning === 'RIGHT') {
-            this.rightPedLight.classList.add('active');
-            this.rightPedestrian.classList.add('warning');
-            this.pedestrianWarning.classList.add('active');
-            this.pedestrianWarningText.textContent = 'PEDESTRIAN RIGHT';
-            pedestrianModule.classList.add('active');
+            this.rightPedestrian.classList.add('detected');
+            hasWarning = true;
+        }
+        
+        // Update global warning if there's a pedestrian warning
+        this.updateGlobalWarning(hasWarning, hasWarning ? 'PEDESTRIAN DETECTED' : null);
+    }
+
+    // New function to manage global warning indicator
+    updateGlobalWarning(isActive, message) {
+        if (isActive) {
+            this.globalWarning.classList.add('active');
+            this.globalWarningText.textContent = message || 'WARNING';
         } else {
-            this.pedestrianWarningText.textContent = 'No Warning';
-            pedestrianModule.classList.remove('active');
+            // Only deactivate if no other warnings are active
+            const hasLaneWarning = this.leftLane.classList.contains('warning') || this.rightLane.classList.contains('warning');
+            const hasPedestrianWarning = this.leftPedestrian.classList.contains('detected') || this.rightPedestrian.classList.contains('detected');
+            const hasObstacleWarning = this.distanceBars.some(bar => bar.classList.contains('critical') || bar.classList.contains('warning'));
+            
+            if (!hasLaneWarning && !hasPedestrianWarning && !hasObstacleWarning) {
+                this.globalWarning.classList.remove('active');
+                this.globalWarningText.textContent = 'System OK';
+            }
         }
     }
 
