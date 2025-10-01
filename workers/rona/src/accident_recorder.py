@@ -247,33 +247,35 @@ class AccidentRecorder:
         finally:
             out.release()
 
-    def start_continuous_recording(self):
+    def run(self):
         """
-        Start the continuous recording loop.
-        This should be called in the main thread or as a separate thread.
+        Single iteration of recording processing.
+        This should be called repeatedly from an external loop.
+        
+        Returns:
+            bool: True if processing was successful, False if an error occurred
         """
-        while True:
-            try:
-                # Receive frame from network
-                frame = receive_frame_from_network()
+        try:
+            # Receive frame from network
+            frame = receive_frame_from_network()
+            
+            if frame is not None:
+                # Add frame to buffer (this will track timing and calculate FPS)
+                self.add_frame_to_buffer(frame)
                 
-                if frame is not None:
-                    # Add frame to buffer (this will track timing and calculate FPS)
-                    self.add_frame_to_buffer(frame)
-                    
-                    # Check for obstacle sensor data
-                    sensor_data = receive_obstacle_sensor_data()
-                    
-                    if sensor_data and sensor_data.get('collision_detected', False):
-                        self.collision_detected(sensor_data)
-                else:
-                    # Small delay only when no frame is available to avoid busy waiting
-                    time.sleep(0.001)  # 1ms delay
+                # Check for obstacle sensor data
+                sensor_data = receive_obstacle_sensor_data()
                 
-            except KeyboardInterrupt:
-                break
-            except Exception as e:
-                time.sleep(1)  # Wait before retrying
+                if sensor_data and sensor_data.get('collision_detected', False):
+                    self.collision_detected(sensor_data)
+            else:
+                # Small delay only when no frame is available to avoid busy waiting
+                time.sleep(0.001)  # 1ms delay
+            
+            return True
+            
+        except Exception as e:
+            return False
 
     def get_status(self):
         """

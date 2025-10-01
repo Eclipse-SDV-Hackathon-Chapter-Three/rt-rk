@@ -9,7 +9,6 @@ import numpy as np
 from datetime import datetime
 from typing import Optional, Dict, Any
 
-
 def receive_frame_from_network() -> Optional[np.ndarray]:
     """
     Receive video frame over network from LA (Lane Detection) system.
@@ -18,7 +17,7 @@ def receive_frame_from_network() -> Optional[np.ndarray]:
     Returns:
         np.ndarray: Frame data or None if no frame available
     """
-    # TODO: Implement network frame reception
+    # TODO: Implement frame reception logic.
     return None
 
 
@@ -30,5 +29,7 @@ def receive_obstacle_sensor_data() -> Optional[Dict[str, Any]]:
     Returns:
         dict: Sensor data containing obstacle information or None
     """
-    # TODO: Implement obstacle sensor data reception
+    # TODO: Implement obstacle sensor data reception.
+    # if 5 seconds have passed return dict with collision_detected = True
+    # else return flag collision_detected = False
     return None

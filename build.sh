@@ -6,7 +6,7 @@
 set -e
 
 IMAGE_NAME="localhost/example_python_workload:0.1"
-WORKLOADS=("PedestrianDetection" "EmergencyStop" "LaneAssistance")
+WORKLOADS=("PedestrianDetection" "EmergencyStop" "LaneAssistance" "RONA")
 
 # Function to display usage
 show_help() {
