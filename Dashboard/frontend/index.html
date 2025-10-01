@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vehicle Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="dashboard">
+        <!-- Header -->
+        <div class="dashboard-header">
+            <h1>Vehicle Control Panel</h1>
+            <div class="status-indicator">
+                <span class="status-dot active"></span>
+                <span>SYSTEM ACTIVE</span>
+            </div>
+        </div>
+
+        <!-- Main Dashboard Content -->
+        <div class="dashboard-content">
+            <!-- Left Side - Speedometer -->
+            <div class="gauge-container left-gauge">
+                <div class="gauge-title">Speed</div>
+                <div class="gauge speedometer">
+                    <div class="gauge-face">
+                        <!-- Speed markings -->
+                        <div class="gauge-markings"></div>
+                        <!-- Needle -->
+                        <div class="needle speed-needle" id="speedNeedle"></div>
+                        <!-- Center dot -->
+                        <div class="center-dot"></div>
+                    </div>
+                    <!-- Digital display -->
+                    <div class="digital-display">
+                        <span id="speedValue">0</span>
+                        <span class="unit">km/h</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Center - ADAS Information -->
+            <div class="adas-container">
+                <div class="adas-title">ADAS Systems</div>
+                
+                <!-- Lane Assist -->
+                <div class="adas-module lane-assist">
+                    <div class="module-header">
+                        <span class="module-icon">🛣️</span>
+                        <span class="module-name">Lane Assist</span>
+                    </div>
+                    <div class="lane-visualization">
+                        <div class="lane-line left-line" id="leftLane"></div>
+                        <div class="vehicle-icon">🚗</div>
+                        <div class="lane-line right-line" id="rightLane"></div>
+                    </div>
+                    <div class="warning-indicator" id="laneWarning">
+                        <span class="warning-icon">⚠️</span>
+                        <span class="warning-text" id="laneWarningText">No Warning</span>
+                    </div>
+                </div>
+
+                <!-- Emergency Stop -->
+                <div class="adas-module emergency-stop">
+                    <div class="module-header">
+                        <span class="module-icon">🛑</span>
+                        <span class="module-name">Emergency Stop</span>
+                    </div>
+                    <div class="distance-visualization">
+                        <div class="vehicle-icon">🚗</div>
+                        <div class="distance-indicator">
+                            <div class="distance-bars">
+                                <div class="distance-bar" id="distBar1"></div>
+                                <div class="distance-bar" id="distBar2"></div>
+                                <div class="distance-bar" id="distBar3"></div>
+                                <div class="distance-bar" id="distBar4"></div>
+                                <div class="distance-bar" id="distBar5"></div>
+                            </div>
+                            <div class="obstacle-icon" id="obstacleIcon">⚫</div>
+                        </div>
+                    </div>
+                    <div class="warning-indicator" id="emergencyWarning">
+                        <span class="warning-icon">⚠️</span>
+                        <span class="warning-text" id="emergencyWarningText">No Warning</span>
+                    </div>
+                    <div class="distance-display">
+                        Distance: <span id="obstacleDistance">-</span>m
+                    </div>
+                </div>
+
+                <!-- Pedestrian Detection -->
+                <div class="adas-module pedestrian-detect">
+                    <div class="module-header">
+                        <span class="module-icon">🚶</span>
+                        <span class="module-name">Pedestrian Detection</span>
+                    </div>
+                    <div class="pedestrian-visualization">
+                        <div class="ped-indicator left-ped" id="leftPedestrian">
+                            <span class="ped-icon">🚶</span>
+                            <span class="ped-light" id="leftPedLight"></span>
+                        </div>
+                        <div class="vehicle-icon">🚗</div>
+                        <div class="ped-indicator right-ped" id="rightPedestrian">
+                            <span class="ped-icon">🚶</span>
+                            <span class="ped-light" id="rightPedLight"></span>
+                        </div>
+                    </div>
+                    <div class="warning-indicator" id="pedestrianWarning">
+                        <span class="warning-icon">⚠️</span>
+                        <span class="warning-text" id="pedestrianWarningText">No Warning</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Side - Tachometer -->
+            <div class="gauge-container right-gauge">
+                <div class="gauge-title">Engine RPM</div>
+                <div class="gauge tachometer">
+                    <div class="gauge-face">
+                        <!-- RPM markings -->
+                        <div class="gauge-markings rpm-markings"></div>
+                        <!-- Needle -->
+                        <div class="needle rpm-needle" id="rpmNeedle"></div>
+                        <!-- Center dot -->
+                        <div class="center-dot"></div>
+                    </div>
+                    <!-- Digital display -->
+                    <div class="digital-display">
+                        <span id="rpmValue">0</span>
+                        <span class="unit">RPM</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="dashboard-footer">
+            <div class="connection-status">
+                <span class="status-indicator" id="connectionStatus">
+                    <span class="status-dot" id="connectionDot"></span>
+                    <span id="connectionText">Connecting...</span>
+                </span>
+            </div>
+            <div class="last-update">
+                Last Update: <span id="lastUpdate">-</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Control Panel for Testing (can be hidden in production) -->
+    <div class="test-controls" id="testControls">
+        <h3>Test Controls</h3>
+        <div class="control-group">
+            <label>Speed:</label>
+            <input type="range" id="speedSlider" min="0" max="200" value="0">
+            <span id="speedDisplay">0</span> km/h
+        </div>
+        <div class="control-group">
+            <label>RPM:</label>
+            <input type="range" id="rpmSlider" min="0" max="8000" value="0">
+            <span id="rpmDisplay">0</span> RPM
+        </div>
+        <div class="control-group">
+            <label>Lane Warning:</label>
+            <button onclick="sendLaneWarning('LEFT')">Left</button>
+            <button onclick="sendLaneWarning('RIGHT')">Right</button>
+            <button onclick="clearLaneWarning()">Clear</button>
+        </div>
+        <div class="control-group">
+            <label>Emergency Stop:</label>
+            <input type="number" id="distanceInput" placeholder="Distance (m)" min="0" max="100">
+            <button onclick="sendEmergencyWarning()">Send</button>
+            <button onclick="clearEmergencyWarning()">Clear</button>
+        </div>
+        <div class="control-group">
+            <label>Pedestrian:</label>
+            <button onclick="sendPedestrianWarning('LEFT')">Left</button>
+            <button onclick="sendPedestrianWarning('RIGHT')">Right</button>
+            <button onclick="clearPedestrianWarning()">Clear</button>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+</body>
+</html>
