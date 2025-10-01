@@ -22,8 +22,8 @@ class RONAWorker:
         
     def setup_signal_handlers(self):
         """Setup signal handlers for graceful shutdown"""
-        signal.signal(signal.SIGTERM, self.signal_handler)
-        signal.signal(signal.SIGINT, self.signal_handler)
+        #signal.signal(signal.SIGTERM, self.signal_handler)
+        #signal.signal(signal.SIGINT, self.signal_handler)
         
     def signal_handler(self, signum, frame):
         """Handle shutdown signals from Ankaios"""
@@ -36,7 +36,7 @@ class RONAWorker:
         logger.info("Initializing RONA worker")
         try:
             # Create accident recordings directory if it doesn't exist
-            recordings_dir = "/data/accident_recordings"
+            recordings_dir = "./data/accident_recordings"
             os.makedirs(recordings_dir, exist_ok=True)
             
             # Initialize AccidentRecorder with configuration

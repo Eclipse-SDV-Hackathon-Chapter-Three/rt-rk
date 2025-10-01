@@ -16,7 +16,7 @@ class LaneDetectionSystem:
         self.lane_detector = LaneDetector(width, height, None, False)
         
         # Warning parameters
-        self.warning_distance = 160  # pixels from center line to trigger warning
+        self.warning_distance = 110  # pixels from center line to trigger warning
         self.center_x = width // 2
         
     def calculate_vehicle_position_warnings(self, left_x, right_x, left_visible, right_visible):
@@ -65,6 +65,8 @@ class LaneDetectionSystem:
         frame = receive_frame()
         if frame is None:
             return
+        
+        
         
         # Step 1: Image preprocessing
         edges = self.image_processor.process_frame(frame)

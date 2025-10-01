@@ -56,8 +56,8 @@ class PedestrianDetector:
         """Detect pedestrians in a single frame"""
         if self.model is None:
             logger.error("Model not loaded")
-            return []
-        
+            return None
+
         try:
             # Run inference with verbose disabled
             results = self.model(frame, verbose=False)
@@ -84,15 +84,15 @@ class PedestrianDetector:
                     
                     # Determine which side of the frame the pedestrian is on
                     if bbox_center_x < frame_center_x:
-                        return "Warning, pedestrian on the left side!"
+                        return "LEFT"
                     else:
-                        return "Warning, pedestrian on the right side!"
+                        return "RIGHT"
 
             return None
 
         except Exception as e:
             logger.error(f"Error detecting pedestrians in frame: {e}")
-            return []
+            return None
     
 
 class PedestrianDetectionWorker:
@@ -105,8 +105,8 @@ class PedestrianDetectionWorker:
         
     def setup_signal_handlers(self):
         """Setup signal handlers for graceful shutdown"""
-        signal.signal(signal.SIGTERM, self.signal_handler)
-        signal.signal(signal.SIGINT, self.signal_handler)
+        #signal.signal(signal.SIGTERM, self.signal_handler)
+        #signal.signal(signal.SIGINT, self.signal_handler)
         
     def signal_handler(self, signum, frame):
         """Handle shutdown signals from Ankaios"""
@@ -120,7 +120,7 @@ class PedestrianDetectionWorker:
         
         try:
             # Initialize the pedestrian detector
-            self.detector = PedestrianDetector(model_path="yolo11n.pt", confidence_threshold=0.7)
+            self.detector = PedestrianDetector(model_path="yolo11n.pt", confidence_threshold=0.6)
             logger.info("PedestrianDetection worker initialized successfully")
         except Exception as e:
             logger.error(f"Failed to initialize detector: {e}")

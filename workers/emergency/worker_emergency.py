@@ -19,8 +19,8 @@ class EmergencyStopWorker:
         
     def setup_signal_handlers(self):
         """Setup signal handlers for graceful shutdown"""
-        signal.signal(signal.SIGTERM, self.signal_handler)
-        signal.signal(signal.SIGINT, self.signal_handler)
+        #signal.signal(signal.SIGTERM, self.signal_handler)
+        #signal.signal(signal.SIGINT, self.signal_handler)
         
     def signal_handler(self, signum, frame):
         """Handle shutdown signals from Ankaios"""
