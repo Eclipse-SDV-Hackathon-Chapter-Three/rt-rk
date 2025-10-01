@@ -2,6 +2,7 @@ import time
 import sys
 import logging
 import signal
+from src.obstacle_detection import ObstacleDetectionSystem
 
 # Configure logging
 logging.basicConfig(
@@ -30,8 +31,7 @@ class EmergencyStopWorker:
     def initialize(self):
         """Initialize the worker - setup connections, load models, etc."""
         logger.info("Initializing EmergencyStop worker")
-        # Add your initialization code here
-        time.sleep(0.5)  # Simulate initialization time
+        self.obstacle_system = ObstacleDetectionSystem(debugging=True)
         logger.info("EmergencyStop worker initialized successfully")
     
     def process_cycle(self):
@@ -39,10 +39,9 @@ class EmergencyStopWorker:
         try:
             # Add your main processing logic here
             logger.debug("Processing emergency stop cycle")
-            
-            # Simulate processing time
-            time.sleep(0.05)
-            
+
+            self.obstacle_system.process_obstacle_detection()
+
             # Example: monitor sensors, check for obstacles, analyze emergency conditions
             # emergency_detected = self.check_emergency_conditions()
             # if emergency_detected:
