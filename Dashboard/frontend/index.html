@@ -11,10 +11,6 @@
         <!-- Header -->
         <div class="dashboard-header">
             <h1>Vehicle Control Panel</h1>
-            <div class="status-indicator">
-                <span class="status-dot active"></span>
-                <span>SYSTEM ACTIVE</span>
-            </div>
         </div>
 
         <!-- Main Dashboard Content -->
@@ -147,38 +143,7 @@
         </div>
     </div>
 
-    <!-- Control Panel for Testing (can be hidden in production) -->
-    <div class="test-controls" id="testControls">
-        <h3>Test Controls</h3>
-        <div class="control-group">
-            <label>Speed:</label>
-            <input type="range" id="speedSlider" min="0" max="200" value="0">
-            <span id="speedDisplay">0</span> km/h
-        </div>
-        <div class="control-group">
-            <label>RPM:</label>
-            <input type="range" id="rpmSlider" min="0" max="8000" value="0">
-            <span id="rpmDisplay">0</span> RPM
-        </div>
-        <div class="control-group">
-            <label>Lane Warning:</label>
-            <button onclick="sendLaneWarning('LEFT')">Left</button>
-            <button onclick="sendLaneWarning('RIGHT')">Right</button>
-            <button onclick="clearLaneWarning()">Clear</button>
-        </div>
-        <div class="control-group">
-            <label>Emergency Stop:</label>
-            <input type="number" id="distanceInput" placeholder="Distance (m)" min="0" max="100">
-            <button onclick="sendEmergencyWarning()">Send</button>
-            <button onclick="clearEmergencyWarning()">Clear</button>
-        </div>
-        <div class="control-group">
-            <label>Pedestrian:</label>
-            <button onclick="sendPedestrianWarning('LEFT')">Left</button>
-            <button onclick="sendPedestrianWarning('RIGHT')">Right</button>
-            <button onclick="clearPedestrianWarning()">Clear</button>
-        </div>
-    </div>
+
 
     <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
 </body>

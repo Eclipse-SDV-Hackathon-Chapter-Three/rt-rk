@@ -50,32 +50,10 @@ class VehicleDashboard {
         this.connectionDot = document.getElementById('connectionDot');
         this.connectionText = document.getElementById('connectionText');
         this.lastUpdate = document.getElementById('lastUpdate');
-        
-        // Test controls
-        this.speedSlider = document.getElementById('speedSlider');
-        this.rpmSlider = document.getElementById('rpmSlider');
-        this.speedDisplay = document.getElementById('speedDisplay');
-        this.rpmDisplay = document.getElementById('rpmDisplay');
-        this.distanceInput = document.getElementById('distanceInput');
     }
 
     initializeEventListeners() {
-        // Test control sliders
-        if (this.speedSlider) {
-            this.speedSlider.addEventListener('input', (e) => {
-                const speed = parseInt(e.target.value);
-                this.speedDisplay.textContent = speed;
-                this.updateSpeed(speed);
-            });
-        }
-
-        if (this.rpmSlider) {
-            this.rpmSlider.addEventListener('input', (e) => {
-                const rpm = parseInt(e.target.value);
-                this.rpmDisplay.textContent = rpm;
-                this.updateRPM(rpm);
-            });
-        }
+        // Dashboard is now view-only, no test controls
     }
 
     startDataPolling() {
@@ -157,6 +135,8 @@ class VehicleDashboard {
     }
 
     updateLaneAssist(warning) {
+        const laneModule = document.querySelector('.lane-assist');
+        
         // Reset lane lines
         this.leftLane.classList.remove('warning');
         this.rightLane.classList.remove('warning');
@@ -166,16 +146,20 @@ class VehicleDashboard {
             this.leftLane.classList.add('warning');
             this.laneWarning.classList.add('active');
             this.laneWarningText.textContent = 'LEFT LANE WARNING';
+            laneModule.classList.add('active');
         } else if (warning === 'RIGHT') {
             this.rightLane.classList.add('warning');
             this.laneWarning.classList.add('active');
             this.laneWarningText.textContent = 'RIGHT LANE WARNING';
+            laneModule.classList.add('active');
         } else {
             this.laneWarningText.textContent = 'No Warning';
+            laneModule.classList.remove('active');
         }
     }
 
     updateEmergencyStop(emergencyData) {
+        const emergencyModule = document.querySelector('.emergency-stop');
         const isActive = emergencyData.active;
         const distance = emergencyData.distance;
         
@@ -185,12 +169,14 @@ class VehicleDashboard {
         if (isActive) {
             this.emergencyWarningText.textContent = `OBSTACLE DETECTED`;
             this.obstacleDistance.textContent = distance.toFixed(1);
+            emergencyModule.classList.add('active');
             
             // Update distance bars based on distance
             this.updateDistanceBars(distance);
         } else {
             this.emergencyWarningText.textContent = 'No Warning';
             this.obstacleDistance.textContent = '-';
+            emergencyModule.classList.remove('active');
             this.clearDistanceBars();
         }
     }
@@ -248,6 +234,8 @@ class VehicleDashboard {
     }
 
     updatePedestrianDetection(warning) {
+        const pedestrianModule = document.querySelector('.pedestrian-detect');
+        
         // Reset pedestrian indicators
         this.leftPedLight.classList.remove('active');
         this.rightPedLight.classList.remove('active');
@@ -260,13 +248,16 @@ class VehicleDashboard {
             this.leftPedestrian.classList.add('warning');
             this.pedestrianWarning.classList.add('active');
             this.pedestrianWarningText.textContent = 'PEDESTRIAN LEFT';
+            pedestrianModule.classList.add('active');
         } else if (warning === 'RIGHT') {
             this.rightPedLight.classList.add('active');
             this.rightPedestrian.classList.add('warning');
             this.pedestrianWarning.classList.add('active');
             this.pedestrianWarningText.textContent = 'PEDESTRIAN RIGHT';
+            pedestrianModule.classList.add('active');
         } else {
             this.pedestrianWarningText.textContent = 'No Warning';
+            pedestrianModule.classList.remove('active');
         }
     }
 
@@ -275,128 +266,12 @@ class VehicleDashboard {
         this.connectionDot.classList.toggle('active', connected);
         this.connectionText.textContent = connected ? 'Connected' : 'Disconnected';
     }
-
-    // Test control functions
-    async sendLaneWarning(direction) {
-        try {
-            await fetch('/api/lane-assist', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ direction: direction })
-            });
-        } catch (error) {
-            console.error('Error sending lane warning:', error);
-        }
-    }
-
-    async clearLaneWarning() {
-        try {
-            await fetch('/api/lane-assist', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ direction: null })
-            });
-        } catch (error) {
-            console.error('Error clearing lane warning:', error);
-        }
-    }
-
-    async sendEmergencyWarning() {
-        const distance = parseFloat(this.distanceInput.value) || 0;
-        try {
-            await fetch('/api/emergency-stop', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ type: 'OBSTACLE', distance: distance })
-            });
-        } catch (error) {
-            console.error('Error sending emergency warning:', error);
-        }
-    }
-
-    async clearEmergencyWarning() {
-        try {
-            await fetch('/api/emergency-stop', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ type: null, distance: 0 })
-            });
-        } catch (error) {
-            console.error('Error clearing emergency warning:', error);
-        }
-    }
-
-    async sendPedestrianWarning(direction) {
-        try {
-            await fetch('/api/pedestrian-detect', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ direction: direction })
-            });
-        } catch (error) {
-            console.error('Error sending pedestrian warning:', error);
-        }
-    }
-
-    async clearPedestrianWarning() {
-        try {
-            await fetch('/api/pedestrian-detect', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ direction: null })
-            });
-        } catch (error) {
-            console.error('Error clearing pedestrian warning:', error);
-        }
-    }
-}
-
-// Global functions for test controls
-let dashboard;
-
-function sendLaneWarning(direction) {
-    dashboard.sendLaneWarning(direction);
-}
-
-function clearLaneWarning() {
-    dashboard.clearLaneWarning();
-}
-
-function sendEmergencyWarning() {
-    dashboard.sendEmergencyWarning();
-}
-
-function clearEmergencyWarning() {
-    dashboard.clearEmergencyWarning();
-}
-
-function sendPedestrianWarning(direction) {
-    dashboard.sendPedestrianWarning(direction);
-}
-
-function clearPedestrianWarning() {
-    dashboard.clearPedestrianWarning();
 }
 
 // Initialize dashboard when page loads
 document.addEventListener('DOMContentLoaded', function() {
     dashboard = new VehicleDashboard();
     
-    // Simulate some initial data for demonstration
-    setTimeout(() => {
-        dashboard.updateSpeed(45);
-        dashboard.updateRPM(2200);
-    }, 1000);
+    // Dashboard is now ready for external data
+    console.log('Vehicle Dashboard initialized and ready for data');
 });

@@ -32,31 +32,60 @@ Dashboard/
 ├── backend/
 │   ├── app.py              # Flask server
 │   └── requirements.txt    # Python dependencies
-└── frontend/
-    ├── index.html          # Main dashboard HTML
-    └── static/
-        ├── css/
-        │   └── style.css   # Dashboard styling
-        └── js/
-            └── dashboard.js # Dashboard functionality
+├── frontend/
+│   ├── index.html          # Main dashboard HTML
+│   └── static/
+│       ├── css/
+│       │   └── style.css   # Dashboard styling
+│       └── js/
+│           └── dashboard.js # Dashboard functionality
+├── test-app/               # Separate test application
+│   ├── app.py              # Test interface server
+│   ├── requirements.txt    # Test app dependencies
+│   ├── start_test.sh       # Test app startup script
+│   └── templates/
+│       └── test_interface.html # Test interface
+├── README.md               # Documentation
+├── start.sh               # Main dashboard startup
+└── test_dashboard.py      # Command line test script
 ```
 
 ## Installation & Setup
 
-### 1. Install Python Dependencies
+### Method 1: Quick Start (Recommended)
+```bash
+# Start main dashboard
+./start.sh
+
+# In another terminal, start test interface
+cd test-app
+./start_test.sh
+```
+
+### Method 2: Manual Setup
+
+#### 1. Install Python Dependencies
 ```bash
 cd backend
 pip install -r requirements.txt
 ```
 
-### 2. Run the Flask Server
+#### 2. Run the Flask Server
 ```bash
 cd backend
 python app.py
 ```
 
-### 3. Access Dashboard
-Open your browser and navigate to: `http://localhost:5000`
+#### 3. Access Dashboard
+Main Dashboard: `http://localhost:5000`
+
+#### 4. Run Test Interface (Optional)
+```bash
+cd test-app
+pip install -r requirements.txt
+python app.py
+```
+Test Interface: `http://localhost:5001`
 
 ## API Endpoints
 
@@ -113,11 +142,23 @@ def receive_pedestrian_data():
 
 ## Testing
 
-The dashboard includes built-in test controls in the bottom-right corner:
-- Speed/RPM sliders
-- Lane warning buttons
-- Emergency stop distance input
-- Pedestrian detection buttons
+### Web Test Interface (Recommended)
+1. Start the main dashboard: `./start.sh`
+2. Start the test interface: `cd test-app && ./start_test.sh`
+3. Open `http://localhost:5001` for the test interface
+4. Use the web controls to send test data to the dashboard
+
+### Command Line Testing
+```bash
+python test_dashboard.py
+```
+
+### Test Interface Features
+- **Speed/RPM Sliders**: Real-time gauge control
+- **ADAS Warning Buttons**: Test all warning systems
+- **Driving Simulation**: 60-second automated test scenario
+- **Connection Status**: Real-time dashboard connectivity
+- **Professional UI**: Easy-to-use web interface
 
 ## Features
 
