@@ -10,7 +10,6 @@ os.environ['OPENCV_VIDEOIO_PRIORITY_MSMF'] = '0'
 os.environ['OPENCV_LOG_LEVEL'] = 'ERROR'
 os.environ['DISPLAY'] = ''
 
-# OVO JE KLJUČNO: Import OpenCV i odmah konfiguriši
 import cv2
 # Onemogući threading i GUI features
 cv2.setNumThreads(0)
@@ -32,7 +31,6 @@ class PedestrianDetector:
         self.confidence_threshold = confidence_threshold
         self.model = None
         self.current_frame = None
-        self.detected_persons = []
         
         logger.info(f"Initializing PedestrianDetector with model: {model_path}")
         self._load_model()
@@ -49,10 +47,7 @@ class PedestrianDetector:
     def process_video(self, video_path):
         """Process entire video file for pedestrian detection"""
         logger.info(f"Processing video: {video_path}")
-        
-        # Reset detections for new video
-        self.detected_persons = []
-        
+                
         # Open video file
         cap = cv2.VideoCapture(video_path)
         
@@ -61,30 +56,24 @@ class PedestrianDetector:
             logger.error(f"Could not open video file {video_path}")
             return False
         
-        frame_count = 0
-        
         try:
             while True:
                 ret, frame = cap.read()
                 if not ret:
                     logger.info("End of video or failed to read frame")
                     break
+      
+                warning = self.detect_pedestrians_in_frame(frame)
                 
-                frame_count += 1
-                frame_detections = self.detect_pedestrians_in_frame(frame)
-                self.detected_persons.append(frame_detections)
-                
-                # Log progress every 30 frames
-                if frame_count % 30 == 0:
-                    logger.info(f"Processed {frame_count} frames")
-        
+                if warning:
+                    logger.warning(warning)
+
         except Exception as e:
             logger.error(f"Error processing video: {e}")
             return False
         finally:
             cap.release()
         
-        logger.info(f"Video processing completed. Total frames processed: {len(self.detected_persons)}")
         return True
     
     def detect_pedestrians_in_frame(self, frame):
@@ -101,60 +90,34 @@ class PedestrianDetector:
             annotated_frame = frame.copy()
             self.current_frame = annotated_frame
             
-            # Prepare new list for current frame detections
-            frame_persons = []
-            
-            # Draw bounding boxes only for 'person' class
+            # Get frame dimensions
+            _, frame_width = frame.shape[:2]
+            frame_center_x = frame_width // 2
+                        
+            # Check for pedestrians and determine their position
             for box in results[0].boxes:
                 cls_id = int(box.cls[0])
                 conf = float(box.conf[0])
                 
                 if self.model.names[cls_id] == "person" and conf > self.confidence_threshold:
-                    # Extract bbox coordinates
-                    xyxy = box.xyxy[0].cpu().numpy()
-                    x1, y1, x2, y2 = map(int, xyxy)
+                    # Get bounding box coordinates
+                    x1, _, x2, _ = box.xyxy[0].tolist()
                     
-                    # Store coordinates in list
-                    person_coords = [x1, y1, x2, y2]
-                    frame_persons.append(person_coords)
+                    # Calculate center of bounding box
+                    bbox_center_x = (x1 + x2) / 2
                     
-                    # Draw bounding box
-                    cv2.rectangle(annotated_frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
-                    
-                    # Draw label with confidence
-                    label = f"person {conf:.2f}"
-                    cv2.putText(annotated_frame, label, (x1, y1-10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
-            
-            if frame_persons:
-                logger.debug(f"Detected persons in frame: {frame_persons}")
-            
-            return frame_persons
-            
+                    # Determine which side of the frame the pedestrian is on
+                    if bbox_center_x < frame_center_x:
+                        return "Warning, pedestrian on the left side!"
+                    else:
+                        return "Warning, pedestrian on the right side!"
+
+            return None
+
         except Exception as e:
             logger.error(f"Error detecting pedestrians in frame: {e}")
             return []
     
-    def get_detection_count(self):
-        """Get total number of frames processed"""
-        return len(self.detected_persons)
-    
-    def get_current_frame(self):
-        """Get the current annotated frame"""
-        return self.current_frame
-    
-    def save_current_frame(self, output_path):
-        """Save the current annotated frame to file"""
-        if self.current_frame is not None:
-            try:
-                cv2.imwrite(output_path, self.current_frame)
-                logger.info(f"Saved current frame to: {output_path}")
-                return True
-            except Exception as e:
-                logger.error(f"Failed to save frame: {e}")
-                return False
-        else:
-            logger.warning("No current frame to save")
-            return False
 
 class PedestrianDetectionWorker:
     def __init__(self):
