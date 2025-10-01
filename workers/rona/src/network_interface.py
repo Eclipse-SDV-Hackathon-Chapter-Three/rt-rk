@@ -1,13 +1,14 @@
 """
-Network interface module for pedestrian worker.
-Handles communication with other system components.
+Network interface module for RONA (Recorder Of Network Accidents) worker.
+Handles communication with other system components for accident recording.
 """
+
 import zenoh
 import json
 import base64
 import numpy as np
 import time
-from typing import Optional
+from typing import Optional, Dict, Any
 
 
 class ZenohCameraSubscriber:
@@ -54,7 +55,7 @@ class ZenohCameraSubscriber:
             shape = tuple(data['shape'])
             dtype = data['dtype']
             
-            print(f"📷 Camera frame received: {shape}, {dtype}, time: {timestamp}")
+            print(f"📷 RONA: Camera frame received: {shape}, {dtype}, time: {timestamp}")
             
             # Decode base64 image data
             frame_bytes = base64.b64decode(data['data'])
@@ -67,7 +68,7 @@ class ZenohCameraSubscriber:
             self.last_update_time = time.time()
             
         except Exception as e:
-            print(f"Error processing camera data: {e}")
+            print(f"❌ RONA: Error processing camera data: {e}")
     
     def connect(self):
         """Connect to Zenoh and setup subscriber."""
@@ -75,24 +76,24 @@ class ZenohCameraSubscriber:
             return
             
         try:
-            print("🔄 Connecting to Zenoh...")
+            print("🔄 RONA: Connecting to Zenoh...")
             zenoh_config = zenoh.Config()
             zenoh_config.insert_json5("mode", json.dumps("peer"))
             zenoh_config.insert_json5("connect/endpoints", json.dumps(["tcp/192.168.33.243:7447"]))
             
             self.session = zenoh.open(zenoh_config)
-            print("✅ Connected to Zenoh")
+            print("✅ RONA: Connected to Zenoh")
             
             # Subscribe to camera frames
             base_topic = 'carla/tesla'
             camera_topic = f"{base_topic}/camera/frame"
             self.subscriber = self.session.declare_subscriber(camera_topic, self.camera_handler)
             
-            print(f"📡 Subscribed to: {camera_topic}")
+            print(f"📡 RONA: Subscribed to: {camera_topic}")
             self.connected = True
             
         except Exception as e:
-            print(f"Error connecting to Zenoh: {e}")
+            print(f"❌ RONA: Error connecting to Zenoh: {e}")
             self.connected = False
     
     def get_latest_frame(self) -> Optional[np.ndarray]:
@@ -114,16 +115,132 @@ class ZenohCameraSubscriber:
             self.session = None
             self.subscriber = None
             self.connected = False
-            print("🔌 Disconnected from Zenoh")
+            print("🔌 RONA: Disconnected from Zenoh")
 
 
-# Global camera subscriber instance
+class ZenohObstacleSubscriber:
+    """Zenoh subscriber for obstacle/collision sensor data."""
+    
+    def __init__(self):
+        self.session = None
+        self.subscriber = None
+        self.obstacle_distance = None
+        self.collision_detected = False
+        self.last_update_time = 0
+        self.connected = False
+        
+    def decode_zenoh_payload(self, payload):
+        """
+        Helper function to decode Zenoh payload that handles both ZBytes and string payloads.
+        
+        Args:
+            payload: Zenoh payload (could be ZBytes or string)
+            
+        Returns:
+            str: Decoded string payload
+        """
+        try:
+            if hasattr(payload, 'to_bytes'):
+                # Handle ZBytes (newer Zenoh versions)
+                return payload.to_bytes().decode('utf-8')
+            elif hasattr(payload, 'decode'):
+                # Handle string payload (older Zenoh versions)
+                return payload.decode('utf-8')
+            else:
+                # Handle already decoded string
+                return str(payload)
+        except Exception as e:
+            raise ValueError(f"Failed to decode Zenoh payload: {e}")
+    
+    def obstacle_handler(self, sample):
+        """Handler for obstacle distance messages."""
+        try:
+            payload_str = self.decode_zenoh_payload(sample.payload)
+            data = json.loads(payload_str)
+            distance = data['distance_meters']
+            status = data['status']
+            timestamp = data['timestamp']
+            
+            if status == 'detected':
+                self.obstacle_distance = distance
+                self.last_update_time = time.time()
+                
+                # Determine if this is close enough to be considered a collision
+                # For accident recording, we consider anything < 1 meter as potential collision
+                if distance < 1.0:
+                    self.collision_detected = True
+                    print(f"🚨 RONA: Collision detected! Obstacle at {distance:.1f}m at {timestamp}")
+                else:
+                    self.collision_detected = False
+                    print(f"⚠️  RONA: Obstacle detected: {distance:.1f}m at {timestamp}")
+            else:
+                self.obstacle_distance = None
+                self.collision_detected = False
+                self.last_update_time = time.time()
+                
+        except Exception as e:
+            print(f"❌ RONA: Error processing obstacle data: {e}")
+    
+    def connect(self):
+        """Connect to Zenoh and setup subscriber."""
+        if self.connected:
+            return
+            
+        try:
+            print("🔄 RONA: Connecting to Zenoh for obstacle data...")
+            zenoh_config = zenoh.Config()
+            zenoh_config.insert_json5("mode", json.dumps("peer"))
+            zenoh_config.insert_json5("connect/endpoints", json.dumps(["tcp/192.168.33.243:7447"]))
+            
+            self.session = zenoh.open(zenoh_config)
+            print("✅ RONA: Connected to Zenoh for obstacle data")
+            
+            # Subscribe to obstacle distance
+            base_topic = 'carla/tesla'
+            obstacle_topic = f"{base_topic}/sensors/obstacle_distance"
+            self.subscriber = self.session.declare_subscriber(obstacle_topic, self.obstacle_handler)
+            
+            print(f"📡 RONA: Subscribed to: {obstacle_topic}")
+            self.connected = True
+            
+        except Exception as e:
+            print(f"❌ RONA: Error connecting to Zenoh for obstacle data: {e}")
+            self.connected = False
+    
+    def get_sensor_data(self) -> Optional[Dict[str, Any]]:
+        """Get current obstacle sensor data if available and recent."""
+        if not self.connected:
+            self.connect()
+            
+        # Check if data is recent (within last 2 seconds)
+        current_time = time.time()
+        if current_time - self.last_update_time > 2.0:
+            return None
+            
+        return {
+            'obstacle_distance': self.obstacle_distance,
+            'collision_detected': self.collision_detected,
+            'timestamp': self.last_update_time
+        }
+    
+    def disconnect(self):
+        """Disconnect from Zenoh."""
+        if self.session:
+            self.session.close()
+            self.session = None
+            self.subscriber = None
+            self.connected = False
+            print("🔌 RONA: Disconnected from Zenoh obstacle subscriber")
+
+
+# Global subscriber instances
 _camera_subscriber = ZenohCameraSubscriber()
+_obstacle_subscriber = ZenohObstacleSubscriber()
 
 
-def receive_frame_from_network():
+def receive_frame_from_network() -> Optional[np.ndarray]:
     """
-    Function for receiving video frames over network.
+    Function for receiving video frames over network for accident recording.
     Returns the latest camera frame as numpy array.
     
     Returns:
@@ -131,68 +248,25 @@ def receive_frame_from_network():
     """
     return _camera_subscriber.get_latest_frame()
 
-def receive_obstacle_sensor_data():
+
+def receive_obstacle_sensor_data() -> Optional[Dict[str, Any]]:
     """
-    Receive obstacle sensor data over network from ES (Emergency Stop) system.
+    Function for receiving obstacle sensor data for collision detection.
+    Returns sensor data including collision status.
     
     Returns:
-        dict: Sensor data containing obstacle information or None
+        dict: Sensor data containing obstacle_distance, collision_detected, and timestamp
+              or None if no recent data available
     """
-    if not _camera_subscriber.connected:
-        _camera_subscriber.connect()
-    
-    try:
-        # Setup Zenoh session if not already connected
-        zenoh_config = zenoh.Config()
-        zenoh_config.insert_json5("mode", json.dumps("peer"))
-        zenoh_config.insert_json5("connect/endpoints", json.dumps(["tcp/192.168.33.243:7447"]))
-        
-        with zenoh.open(zenoh_config) as session:
-            base_topic = 'carla/tesla'
-            obstacle_data = {'obstacle_detected': False, 'distance_meters': None, 'collision_detected': False}
-            data_received = False
-            
-            def obstacle_handler(sample):
-                nonlocal obstacle_data, data_received
-                try:
-                    payload_str = _camera_subscriber.decode_zenoh_payload(sample.payload)
-                    data = json.loads(payload_str)
-                    distance = data['distance_meters']
-                    status = data['status']
-                    
-                    obstacle_data['obstacle_detected'] = (status == 'detected')
-                    obstacle_data['distance_meters'] = distance
-                    data_received = True
-                    
-                except Exception as e:
-                    print(f"Error processing obstacle data: {e}")
-            
-            def collision_handler(sample):
-                nonlocal obstacle_data, data_received
-                try:
-                    payload_str = _camera_subscriber.decode_zenoh_payload(sample.payload)
-                    data = json.loads(payload_str)
-                    collision_detected = data['collision_detected']
-                    
-                    obstacle_data['collision_detected'] = collision_detected
-                    data_received = True
-                    
-                except Exception as e:
-                    print(f"Error processing collision data: {e}")
-            
-            # Subscribe to obstacle and collision topics
-            obstacle_sub = session.declare_subscriber(f"{base_topic}/sensors/obstacle_distance", obstacle_handler)
-            collision_sub = session.declare_subscriber(f"{base_topic}/sensors/collision_status", collision_handler)
-            
-            # Wait briefly for data (non-blocking approach)
-            start_time = time.time()
-            timeout = 1.0  # 1 second timeout
-            
-            while not data_received and (time.time() - start_time) < timeout:
-                time.sleep(0.1)
-            
-            return obstacle_data if data_received else None
-            
-    except Exception as e:
-        print(f"Error receiving obstacle sensor data: {e}")
-        return None
+    return _obstacle_subscriber.get_sensor_data()
+
+
+def cleanup_network_connections():
+    """
+    Cleanup all network connections.
+    Should be called during shutdown.
+    """
+    print("🧹 RONA: Cleaning up network connections...")
+    _camera_subscriber.disconnect()
+    _obstacle_subscriber.disconnect()
+    print("✅ RONA: Network cleanup completed")
