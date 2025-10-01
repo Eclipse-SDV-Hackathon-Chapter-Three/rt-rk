@@ -97,7 +97,7 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    max-width: 420px;
+    max-width: 550px;
 }
 
 /* Remove external gauge title since it will be inside */
@@ -108,8 +108,8 @@ body {
 /* Gauge Styles */
 .gauge {
     position: relative;
-    width: 384px;
-    height: 384px;
+    width: 500px;
+    height: 500px;
     background: 
         radial-gradient(circle at 30% 30%, rgba(59, 130, 246, 0.15) 0%, transparent 50%),
         radial-gradient(circle at 70% 70%, rgba(96, 165, 250, 0.1) 0%, transparent 50%),
@@ -201,7 +201,7 @@ body {
         transparent 180deg,
         transparent 270deg
     );
-    mask: radial-gradient(circle, transparent 105px, black 110px, black 140px, transparent 145px);
+    mask: radial-gradient(circle, transparent 137px, black 143px, black 182px, transparent 189px);
 }
 
 /* RPM markings (0-8000 RPM) */
@@ -240,14 +240,14 @@ body {
         transparent 180deg,
         transparent 270deg
     );
-    mask: radial-gradient(circle, transparent 126px, black 132px, black 168px, transparent 174px);
+    mask: radial-gradient(circle, transparent 164px, black 172px, black 219px, transparent 227px);
 }
 
 /* Needle Styles */
 .needle {
     position: absolute;
-    width: 6px;
-    height: 144px;
+    width: 8px;
+    height: 188px;
     background: linear-gradient(to top, 
         #dc2626 0%, 
         #f59e0b 30%, 
@@ -258,13 +258,13 @@ body {
     left: 50%;
     transform-origin: bottom center;
     transform: translateX(-50%) translateY(-100%) rotate(225deg);
-    border-radius: 3px;
+    border-radius: 4px;
     box-shadow: 
-        0 0 12px rgba(59, 130, 246, 0.9),
-        0 0 25px rgba(59, 130, 246, 0.5),
-        0 2px 4px rgba(0, 0, 0, 0.5),
-        inset 0 1px 2px rgba(255, 255, 255, 0.4),
-        inset 0 -1px 2px rgba(0, 0, 0, 0.3);
+        0 0 15px rgba(59, 130, 246, 0.9),
+        0 0 30px rgba(59, 130, 246, 0.5),
+        0 3px 6px rgba(0, 0, 0, 0.5),
+        inset 0 1px 3px rgba(255, 255, 255, 0.4),
+        inset 0 -1px 3px rgba(0, 0, 0, 0.3);
     transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
     z-index: 6;
     border: 1px solid rgba(255, 255, 255, 0.2);
@@ -273,8 +273,8 @@ body {
 /* Center dot with border and shadow */
 .center-dot {
     position: absolute;
-    width: 34px;
-    height: 34px;
+    width: 44px;
+    height: 44px;
     background: 
         radial-gradient(circle at 30% 30%, #60a5fa 0%, #3b82f6 50%, #1e40af 100%);
     border-radius: 50%;
@@ -283,38 +283,38 @@ body {
     transform: translate(-50%, -50%);
     z-index: 7;
     box-shadow: 
-        0 0 15px rgba(59, 130, 246, 0.8),
-        0 3px 6px rgba(0, 0, 0, 0.4),
-        inset 0 2px 4px rgba(255, 255, 255, 0.4),
-        inset 0 -2px 4px rgba(0, 0, 0, 0.3);
-    border: 2px solid rgba(255, 255, 255, 0.3);
+        0 0 18px rgba(59, 130, 246, 0.8),
+        0 4px 8px rgba(0, 0, 0, 0.4),
+        inset 0 3px 6px rgba(255, 255, 255, 0.4),
+        inset 0 -3px 6px rgba(0, 0, 0, 0.3);
+    border: 3px solid rgba(255, 255, 255, 0.3);
 }
 
 /* Gauge title inside the gauge */
 .gauge::before {
     content: '';
     position: absolute;
-    top: 108px;
+    top: 140px;
     left: 50%;
     transform: translateX(-50%);
-    font-size: 14px;
+    font-size: 16px;
     font-weight: 700;
     color: #93c5fd;
     text-transform: uppercase;
     letter-spacing: 2.5px;
     z-index: 4;
     text-shadow: 
-        0 0 8px rgba(147, 197, 253, 0.9),
-        0 0 16px rgba(59, 130, 246, 0.6),
-        0 2px 4px rgba(0, 0, 0, 0.4);
+        0 0 10px rgba(147, 197, 253, 0.9),
+        0 0 20px rgba(59, 130, 246, 0.6),
+        0 3px 6px rgba(0, 0, 0, 0.4);
     background: rgba(15, 23, 42, 0.9);
-    padding: 4px 12px;
-    border-radius: 8px;
+    padding: 5px 15px;
+    border-radius: 10px;
     border: 1px solid rgba(59, 130, 246, 0.4);
-    backdrop-filter: blur(8px);
+    backdrop-filter: blur(10px);
     box-shadow: 
-        0 0 10px rgba(59, 130, 246, 0.3),
-        0 2px 4px rgba(0, 0, 0, 0.3);
+        0 0 12px rgba(59, 130, 246, 0.3),
+        0 3px 6px rgba(0, 0, 0, 0.3);
 }
 
 /* Speedometer title */
@@ -331,30 +331,30 @@ body {
 /* Digital Display inside gauge */
 .digital-display {
     position: absolute;
-    bottom: 54px;
+    bottom: 70px;
     left: 50%;
     transform: translateX(-50%);
     background: linear-gradient(145deg, #0a0f1c 0%, #1e293b 50%, #0f172a 100%);
     border: 2px solid rgba(59, 130, 246, 0.6);
-    border-radius: 10px;
-    padding: 7px 16px;
+    border-radius: 12px;
+    padding: 9px 20px;
     font-family: 'Orbitron', 'Courier New', monospace;
-    font-size: 18px;
+    font-size: 22px;
     font-weight: 600;
     color: #60a5fa;
     text-shadow: 
-        0 0 8px rgba(96, 165, 250, 0.9),
-        0 0 16px rgba(96, 165, 250, 0.5),
-        0 1px 2px rgba(0, 0, 0, 0.8);
+        0 0 10px rgba(96, 165, 250, 0.9),
+        0 0 20px rgba(96, 165, 250, 0.5),
+        0 2px 3px rgba(0, 0, 0, 0.8);
     box-shadow: 
-        0 0 15px rgba(59, 130, 246, 0.5),
-        0 4px 8px rgba(0, 0, 0, 0.3),
-        inset 0 1px 3px rgba(255, 255, 255, 0.15),
-        inset 0 -2px 5px rgba(0, 0, 0, 0.4);
-    min-width: 100px;
+        0 0 18px rgba(59, 130, 246, 0.5),
+        0 5px 10px rgba(0, 0, 0, 0.3),
+        inset 0 1px 4px rgba(255, 255, 255, 0.15),
+        inset 0 -3px 6px rgba(0, 0, 0, 0.4);
+    min-width: 130px;
     text-align: center;
     z-index: 5;
-    backdrop-filter: blur(10px);
+    backdrop-filter: blur(12px);
     letter-spacing: 1px;
 }
 
