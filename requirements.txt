@@ -1,2 +1,11 @@
 ankaios-sdk==0.6.0
 ultralytics
+
+# Lane Detection (LA) System Requirements
+# Computer Vision and Image Processing
+
+# Scientific Computing
+numpy==1.24.3
+
+# Optional dependencies for improved performance
+opencv-contrib-python==4.8.1.78
