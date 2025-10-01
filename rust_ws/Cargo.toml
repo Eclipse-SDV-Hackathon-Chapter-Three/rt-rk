@@ -1,5 +1,5 @@
 [workspace]
-members = [
+members = ["ucar_ai",
     "ucar_core",
     "ucar_pub",
 ]
@@ -11,7 +11,7 @@ edition = "2024"
 
 # Shared dependencies that can be used by workspace members
 [workspace.dependencies]
-tokio = { version = "1.47.1", features = ["rt", "macros", "time"] }
+tokio = { version = "1.47.1", features = ["full"] }
 serde = { version = "1.0.228", features = ["derive"] }
 serde_json = "1.0.145"
 log = "0.4.28"
@@ -19,10 +19,12 @@ env_logger = "0.11.8"
 up-rust = { version = "0.7.1" }
 up-transport-zenoh = { version = "0.8.0" }
 zenoh = { version = "1.5.1" }
+pretty_env_logger ={ version = "0.4.0" }
+ctrlc = {version = "3.4"}
+carla-data-serde = { git = "https://github.com/Eclipse-SDV-Hackathon-Chapter-Three/carla-data-serde.git", branch = "main" }
 
 ego-vehicle = { path = "../../sdv_lab/ego-vehicle/uprotocol-sensors" }
 
-# Patches to fix compatibility issues
 [patch.crates-io]
 # Fix for CARLA action buffer type mismatch
 carla = { git = "https://github.com/Eclipse-SDV-Hackathon-Chapter-Three/carla-rust.git", branch = "action-buffer-fix", package = "carla" }
