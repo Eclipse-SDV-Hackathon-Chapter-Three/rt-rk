@@ -1,0 +1,47 @@
+apiVersion: v0.1
+workloads:
+  worker-lane:
+    runtime: podman
+    agent: agent_D
+    restart: true
+    updateStrategy: AT_MOST_ONCE
+    accessRights:
+      allow: []
+      deny: []
+    tags:
+      - key: owner
+        value: Ankaios team
+    runtimeConfig: |
+      image: worker-lane:latest
+      commandOptions: ["--privileged", "-it", "--rm", "--net", "host", "--cap-add=NET_RAW", "--ipc", "host"]
+      commandArgs: [""]
+  emergency:
+    runtime: podman
+    agent: agent_D
+    restart: true
+    updateStrategy: AT_MOST_ONCE
+    accessRights:
+      allow: []
+      deny: []
+    tags:
+      - key: owner
+        value: Ankaios team
+    runtimeConfig: |
+      image: emergency:latest
+      commandOptions: ["--privileged", "-it", "--rm", "--net", "host", "--cap-add=NET_RAW", "--ipc", "host"]
+      commandArgs: [""]
+  pedestrian:
+    runtime: podman
+    agent: agent_D
+    restart: true
+    updateStrategy: AT_MOST_ONCE
+    accessRights:
+      allow: []
+      deny: []
+    tags:
+      - key: owner
+        value: Ankaios team
+    runtimeConfig: |
+      image: pedestrian:latest
+      commandOptions: ["--privileged", "-it", "--rm", "--net", "host", "--cap-add=NET_RAW", "--ipc", "host"]
+      commandArgs: [""]

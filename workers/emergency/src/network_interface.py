@@ -72,6 +72,11 @@ class ZenohObstacleSubscriber:
             zenoh_config = zenoh.Config()
             zenoh_config.insert_json5("mode", json.dumps("peer"))
             zenoh_config.insert_json5("connect/endpoints", json.dumps(["tcp/192.168.33.243:7447"]))
+
+            # Enable scouting for automatic router discovery
+            zenoh_config.insert_json5("scouting/multicast/enabled", json.dumps(True))
+            zenoh_config.insert_json5("scouting/gossip/enabled", json.dumps(True))
+            zenoh_config.insert_json5("scouting/timeout", json.dumps(3000))  # 3 seconds timeout
             
             self.session = zenoh.open(zenoh_config)
             print("✅ Connected to Zenoh")
