@@ -1,0 +1,8 @@
+# CARLA Client Requirements
+pygame>=2.0.0
+numpy>=1.20.0
+zenoh>=0.10.0
+
+# Optional dependencies for advanced features
+# opencv-python>=4.5.0  # For image processing
+# matplotlib>=3.3.0     # For plotting telemetry data
