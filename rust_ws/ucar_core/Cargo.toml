@@ -1,0 +1,23 @@
+[package]
+name = "ucar_core"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }
+ego-vehicle = { workspace = true }
+tokio = { workspace = true }
+carla = {git = "https://github.com/Eclipse-SDV-Hackathon-Chapter-Three/carla-rust.git", branch = "action-buffer-fix", package = "carla" }
+# carla-sys = {workspace = true}
+pretty_env_logger = { workspace = true }
+log = { workspace = true }
+up-rust = { workspace = true }
+up-transport-zenoh = { workspace = true }
+zenoh = { workspace = true }
+ctrlc = { workspace = true }
+carla-data-serde = { workspace = true }
+
+[[bin]]
+name = "image_pub"
+path = "src/image_pub.rs"

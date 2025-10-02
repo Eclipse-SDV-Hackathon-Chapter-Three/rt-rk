@@ -1,0 +1,17 @@
+[package]
+name = "ucar_ai"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+tokio ={ workspace = true}
+serde = {workspace = true}
+
+burn = { version = "0.18.0", features = ["ndarray", "wgpu", "cuda"] }
+image = { version = "0.24.9", features = ["png", "jpeg"] }
+yolox-burn = {git = "https://github.com/tracel-ai/models.git", branch = "main", package="yolox-burn", features = ["std", "pretrained"]}
+burn-import = { version = "0.18.0" }
+
+[[bin]]
+name = "yolo_infer"
+path = "src/yolo_infer.rs"

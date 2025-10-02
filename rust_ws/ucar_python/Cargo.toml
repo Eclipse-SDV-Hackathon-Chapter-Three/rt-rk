@@ -1,0 +1,19 @@
+[package]
+name = "ucar_python"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "ucar_python"
+crate-type = ["cdylib"]
+
+[dependencies]
+pyo3 = { version = "0.20", features = ["extension-module", "abi3-py38"] }
+tokio = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+log = { workspace = true }
+env_logger = { workspace = true }
+up-rust = { workspace = true }
+up-transport-zenoh = { workspace = true }
+zenoh = { workspace = true }
