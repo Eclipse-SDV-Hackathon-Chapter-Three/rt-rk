@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vehicle Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="dashboard">
+        <!-- Header -->
+        <div class="dashboard-header">
+            <h1>Vehicle Control Panel</h1>
+        </div>
+
+        <!-- Main Dashboard Content -->
+        <div class="dashboard-content">
+            <!-- Left Side - Speedometer -->
+            <div class="gauge-container left-gauge">
+                <div class="gauge-title">Speed</div>
+                <div class="gauge speedometer">
+                    <div class="gauge-face">
+                        <!-- Speed markings -->
+                        <div class="gauge-markings"></div>
+                        <!-- Needle -->
+                        <div class="needle speed-needle" id="speedNeedle"></div>
+                        <!-- Center dot -->
+                        <div class="center-dot"></div>
+                    </div>
+                    <!-- Digital display -->
+                    <div class="digital-display">
+                        <span id="speedValue">0</span>
+                        <span class="unit">km/h</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Center - ADAS Information -->
+            <div class="adas-container">
+                <div class="adas-title">ADAS Systems</div>
+                
+                <!-- Modern Vehicle View -->
+                <div class="vehicle-view-container">
+                    <!-- Top WiFi-style distance indicator -->
+                    <div class="distance-indicator">
+                        <div class="distance-bars">
+                            <div class="distance-bar" id="distBar1"></div>
+                            <div class="distance-bar" id="distBar2"></div>
+                            <div class="distance-bar" id="distBar3"></div>
+                            <div class="distance-bar" id="distBar4"></div>
+                            <div class="distance-bar" id="distBar5"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Vehicle view area -->
+                    <div class="vehicle-area">
+                        <!-- Left pedestrian icon -->
+                        <div class="pedestrian-icon left-pedestrian" id="leftPedestrian">
+                            🚶
+                        </div>
+                        
+                        <!-- Left lane line -->
+                        <div class="lane-line left-line" id="leftLane"></div>
+                        
+                        <!-- Central vehicle (top-down view) -->
+                        <div class="vehicle-body" id="vehicleBody">
+                            <!-- Car wheels -->
+                            <div class="car-wheel front-left"></div>
+                            <div class="car-wheel front-right"></div>
+                            <div class="car-wheel rear-left"></div>
+                            <div class="car-wheel rear-right"></div>
+                        </div>
+                        
+                        <!-- Right lane line -->
+                        <div class="lane-line right-line" id="rightLane"></div>
+                        
+                        <!-- Right pedestrian icon -->
+                        <div class="pedestrian-icon right-pedestrian" id="rightPedestrian">
+                            🚶
+                        </div>
+                    </div>
+                    
+                    <!-- Bottom warning indicator -->
+                    <div class="global-warning" id="globalWarning">
+                        <span class="warning-exclamation">⚠️</span>
+                        <span class="warning-text" id="globalWarningText">System OK</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Side - Tachometer -->
+            <div class="gauge-container right-gauge">
+                <div class="gauge-title">Engine RPM</div>
+                <div class="gauge tachometer">
+                    <div class="gauge-face">
+                        <!-- RPM markings -->
+                        <div class="gauge-markings rpm-markings"></div>
+                        <!-- Needle -->
+                        <div class="needle rpm-needle" id="rpmNeedle"></div>
+                        <!-- Center dot -->
+                        <div class="center-dot"></div>
+                    </div>
+                    <!-- Digital display -->
+                    <div class="digital-display">
+                        <span id="rpmValue">0</span>
+                        <span class="unit">RPM</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="dashboard-footer">
+            <div class="connection-status">
+                <span class="status-indicator" id="connectionStatus">
+                    <span class="status-dot" id="connectionDot"></span>
+                    <span id="connectionText">Connecting...</span>
+                </span>
+            </div>
+            <div class="last-update">
+                Last Update: <span id="lastUpdate">-</span>
+            </div>
+        </div>
+    </div>
+
+
+
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+</body>
+</html>

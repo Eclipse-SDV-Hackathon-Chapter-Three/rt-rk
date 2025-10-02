@@ -1,0 +1,1106 @@
+/* Vehicle Dashboard Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #0a1829 0%, #1e3a5f 50%, #2c5282 100%);
+    color: #ffffff;
+    overflow: hidden;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    padding: 0;
+}
+
+.dashboard {
+    width: 100vw;
+    height: 60vh;
+    display: flex;
+    flex-direction: column;
+    background: linear-gradient(145deg, #1a365d 0%, #2d3748 100%);
+    border-radius: 50px;
+    box-shadow: 
+        0 30px 60px rgba(0, 0, 0, 0.4),
+        0 15px 30px rgba(0, 0, 0, 0.2),
+        inset 0 2px 4px rgba(255, 255, 255, 0.1),
+        inset 0 -2px 8px rgba(0, 0, 0, 0.1);
+    border: 3px solid rgba(59, 130, 246, 0.4);
+    overflow: hidden;
+}
+
+/* Header Styles */
+.dashboard-header {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 10px 20px;
+    background: linear-gradient(90deg, rgba(59, 130, 246, 0.1) 0%, rgba(29, 78, 216, 0.2) 100%);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.dashboard-header h1 {
+    font-size: 1.4em;
+    font-weight: 500;
+    color: #3b82f6;
+    text-shadow: 0 0 20px rgba(59, 130, 246, 0.4);
+    letter-spacing: 1px;
+}
+
+.status-indicator {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.8em;
+    color: #94a3b8;
+}
+
+.status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #ef4444;
+    box-shadow: 0 0 8px rgba(239, 68, 68, 0.6);
+    animation: pulse 2s infinite;
+}
+
+.status-dot.active {
+    background: #22c55e;
+    box-shadow: 0 0 8px rgba(34, 197, 94, 0.6);
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+/* Main Content */
+.dashboard-content {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 30px;
+    gap: 30px;
+    height: 100%;
+}
+
+/* Gauge Container */
+.gauge-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    max-width: 550px;
+}
+
+/* Remove external gauge title since it will be inside */
+.gauge-title {
+    display: none;
+}
+
+/* Gauge Styles */
+.gauge {
+    position: relative;
+    width: 500px;
+    height: 500px;
+    background: 
+        radial-gradient(circle at 30% 30%, rgba(59, 130, 246, 0.15) 0%, transparent 50%),
+        radial-gradient(circle at 70% 70%, rgba(96, 165, 250, 0.1) 0%, transparent 50%),
+        radial-gradient(circle, 
+            #0f172a 0%, 
+            #1e293b 40%, 
+            #2d3748 70%, 
+            #1a202c 100%);
+    border-radius: 50%;
+    box-shadow: 
+        0 0 30px rgba(59, 130, 246, 0.3),
+        0 8px 16px rgba(0, 0, 0, 0.4),
+        inset 0 2px 8px rgba(255, 255, 255, 0.1),
+        inset 0 -4px 12px rgba(0, 0, 0, 0.3);
+    border: 3px solid rgba(59, 130, 246, 0.4);
+    overflow: hidden;
+}
+
+.gauge-face {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: radial-gradient(circle, #1e3a5f 0%, #0f172a 70%);
+    border: 2px solid rgba(59, 130, 246, 0.3);
+    position: relative;
+    box-shadow: 
+        inset 0 0 20px rgba(0, 0, 0, 0.6),
+        0 0 20px rgba(59, 130, 246, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+/* Gauge Markings */
+.gauge-markings {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    filter: drop-shadow(0 0 3px rgba(59, 130, 246, 0.6));
+}
+
+.gauge-markings::before {
+    content: '';
+    position: absolute;
+    top: 12px;
+    left: 50%;
+    width: 3px;
+    height: 25px;
+    background: #3b82f6;
+    transform: translateX(-50%);
+    transform-origin: bottom center;
+    box-shadow: 0 0 5px rgba(59, 130, 246, 0.6);
+}
+
+/* Speed markings (0-200 km/h) */
+.speedometer .gauge-markings {
+    background: conic-gradient(
+        from 225deg,
+        transparent 0deg,
+        #3b82f6 1deg,
+        transparent 2deg,
+        transparent 18deg,
+        #3b82f6 19deg,
+        transparent 20deg,
+        transparent 38deg,
+        #3b82f6 39deg,
+        transparent 40deg,
+        transparent 58deg,
+        #3b82f6 59deg,
+        transparent 60deg,
+        transparent 78deg,
+        #3b82f6 79deg,
+        transparent 80deg,
+        transparent 98deg,
+        #3b82f6 99deg,
+        transparent 100deg,
+        transparent 118deg,
+        #3b82f6 119deg,
+        transparent 120deg,
+        transparent 138deg,
+        #3b82f6 139deg,
+        transparent 140deg,
+        transparent 158deg,
+        #3b82f6 159deg,
+        transparent 160deg,
+        transparent 178deg,
+        #3b82f6 179deg,
+        transparent 180deg,
+        transparent 270deg
+    );
+    mask: radial-gradient(circle, transparent 137px, black 143px, black 182px, transparent 189px);
+}
+
+/* RPM markings (0-8000 RPM) */
+.tachometer .gauge-markings {
+    background: conic-gradient(
+        from 225deg,
+        transparent 0deg,
+        #60a5fa 1deg,
+        transparent 2deg,
+        transparent 18deg,
+        #60a5fa 19deg,
+        transparent 20deg,
+        transparent 38deg,
+        #60a5fa 39deg,
+        transparent 40deg,
+        transparent 58deg,
+        #60a5fa 59deg,
+        transparent 60deg,
+        transparent 78deg,
+        #60a5fa 79deg,
+        transparent 80deg,
+        transparent 98deg,
+        #60a5fa 99deg,
+        transparent 100deg,
+        transparent 118deg,
+        #60a5fa 119deg,
+        transparent 120deg,
+        transparent 138deg,
+        #60a5fa 139deg,
+        transparent 140deg,
+        transparent 158deg,
+        #60a5fa 159deg,
+        transparent 160deg,
+        transparent 178deg,
+        #60a5fa 179deg,
+        transparent 180deg,
+        transparent 270deg
+    );
+    mask: radial-gradient(circle, transparent 164px, black 172px, black 219px, transparent 227px);
+}
+
+/* Needle Styles */
+.needle {
+    position: absolute;
+    width: 8px;
+    height: 188px;
+    background: linear-gradient(to top, 
+        #dc2626 0%, 
+        #f59e0b 30%, 
+        #fbbf24 50%, 
+        #60a5fa 70%, 
+        #3b82f6 100%);
+    top: 50%;
+    left: 50%;
+    transform-origin: bottom center;
+    transform: translateX(-50%) translateY(-100%) rotate(225deg);
+    border-radius: 4px;
+    box-shadow: 
+        0 0 15px rgba(59, 130, 246, 0.9),
+        0 0 30px rgba(59, 130, 246, 0.5),
+        0 3px 6px rgba(0, 0, 0, 0.5),
+        inset 0 1px 3px rgba(255, 255, 255, 0.4),
+        inset 0 -1px 3px rgba(0, 0, 0, 0.3);
+    transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 6;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Center dot with border and shadow */
+.center-dot {
+    position: absolute;
+    width: 44px;
+    height: 44px;
+    background: 
+        radial-gradient(circle at 30% 30%, #60a5fa 0%, #3b82f6 50%, #1e40af 100%);
+    border-radius: 50%;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 7;
+    box-shadow: 
+        0 0 18px rgba(59, 130, 246, 0.8),
+        0 4px 8px rgba(0, 0, 0, 0.4),
+        inset 0 3px 6px rgba(255, 255, 255, 0.4),
+        inset 0 -3px 6px rgba(0, 0, 0, 0.3);
+    border: 3px solid rgba(255, 255, 255, 0.3);
+}
+
+/* Gauge title inside the gauge */
+.gauge::before {
+    content: '';
+    position: absolute;
+    top: 140px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 16px;
+    font-weight: 700;
+    color: #93c5fd;
+    text-transform: uppercase;
+    letter-spacing: 2.5px;
+    z-index: 4;
+    text-shadow: 
+        0 0 10px rgba(147, 197, 253, 0.9),
+        0 0 20px rgba(59, 130, 246, 0.6),
+        0 3px 6px rgba(0, 0, 0, 0.4);
+    background: rgba(15, 23, 42, 0.9);
+    padding: 5px 15px;
+    border-radius: 10px;
+    border: 1px solid rgba(59, 130, 246, 0.4);
+    backdrop-filter: blur(10px);
+    box-shadow: 
+        0 0 12px rgba(59, 130, 246, 0.3),
+        0 3px 6px rgba(0, 0, 0, 0.3);
+}
+
+/* Speedometer title */
+.speedometer::before {
+    content: 'SPEED';
+}
+
+/* Tachometer title */
+.tachometer::before {
+    content: 'RPM';
+}
+
+/* Digital Display */
+/* Digital Display inside gauge */
+.digital-display {
+    position: absolute;
+    bottom: 70px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(145deg, #0a0f1c 0%, #1e293b 50%, #0f172a 100%);
+    border: 2px solid rgba(59, 130, 246, 0.6);
+    border-radius: 12px;
+    padding: 9px 20px;
+    font-family: 'Orbitron', 'Courier New', monospace;
+    font-size: 22px;
+    font-weight: 600;
+    color: #60a5fa;
+    text-shadow: 
+        0 0 10px rgba(96, 165, 250, 0.9),
+        0 0 20px rgba(96, 165, 250, 0.5),
+        0 2px 3px rgba(0, 0, 0, 0.8);
+    box-shadow: 
+        0 0 18px rgba(59, 130, 246, 0.5),
+        0 5px 10px rgba(0, 0, 0, 0.3),
+        inset 0 1px 4px rgba(255, 255, 255, 0.15),
+        inset 0 -3px 6px rgba(0, 0, 0, 0.4);
+    min-width: 130px;
+    text-align: center;
+    z-index: 5;
+    backdrop-filter: blur(12px);
+    letter-spacing: 1px;
+}
+
+.digital-display span {
+    font-size: 1.8em;
+    font-weight: 700;
+    color: #3b82f6;
+    text-shadow: 
+        0 0 10px rgba(59, 130, 246, 0.8),
+        0 0 20px rgba(59, 130, 246, 0.4);
+    font-family: 'Courier New', monospace;
+    display: block;
+    line-height: 1;
+}
+
+.digital-display .unit {
+    font-size: 0.45em;
+    color: #94a3b8;
+    margin-top: 2px;
+    font-weight: 400;
+    text-shadow: none;
+    display: block;
+    letter-spacing: 1px;
+}
+
+/* ADAS Container */
+.adas-container {
+    flex: 1;
+    max-width: 300px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    align-self: stretch;
+    justify-content: center;
+}
+
+.adas-title {
+    text-align: center;
+    font-size: 1em;
+    color: #60a5fa;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 5px;
+    text-shadow: 0 0 8px rgba(96, 165, 250, 0.4);
+    font-weight: 500;
+}
+
+/* Modern Vehicle View Container */
+.vehicle-view-container {
+    background: linear-gradient(145deg, rgba(15, 23, 42, 0.6), rgba(30, 58, 95, 0.4));
+    border: 2px solid rgba(59, 130, 246, 0.3);
+    border-radius: 15px;
+    padding: 20px;
+    backdrop-filter: blur(10px);
+    height: 276px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+}
+
+/* WiFi-style Distance Indicator */
+.distance-indicator {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 15px;
+    position: relative;
+    height: 55px;
+}
+
+.distance-bars {
+    position: relative;
+    width: 100px;
+    height: 55px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+}
+
+/* Classic WiFi signal arcs */
+.distance-bar {
+    position: absolute;
+    border: 0;
+    border-top: 4px solid rgba(100, 116, 139, 0.3);
+    transition: all 0.3s ease;
+    left: 50%;
+    bottom: 0;
+    transform: translateX(-50%);
+    box-sizing: border-box;
+}
+
+/* WiFi arc sizes with spacing between arcs */
+.distance-bar:nth-child(1) { 
+    width: 20px; 
+    height: 10px;
+    border-top-width: 3px;
+    border-radius: 20px 20px 0 0;
+}
+.distance-bar:nth-child(2) { 
+    width: 36px; 
+    height: 18px;
+    border-top-width: 3px;
+    border-radius: 36px 36px 0 0;
+}
+.distance-bar:nth-child(3) { 
+    width: 52px; 
+    height: 26px;
+    border-top-width: 4px;
+    border-radius: 52px 52px 0 0;
+}
+.distance-bar:nth-child(4) { 
+    width: 68px; 
+    height: 34px;
+    border-top-width: 4px;
+    border-radius: 68px 68px 0 0;
+}
+.distance-bar:nth-child(5) { 
+    width: 84px; 
+    height: 42px;
+    border-top-width: 4px;
+    border-radius: 84px 84px 0 0;
+}
+
+/* Central dot for WiFi source */
+.distance-bars::before {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 6px;
+    height: 6px;
+    background: rgba(100, 116, 139, 0.4);
+    border-radius: 50%;
+    z-index: 10;
+}
+
+/* Container state styling for WiFi arcs */
+.vehicle-view-container .distance-bars.level-safe-double .distance-bar:nth-child(4),
+.vehicle-view-container .distance-bars.level-safe-double .distance-bar:nth-child(5) {
+    border-top-color: #22c55e;
+    box-shadow: 0 0 10px rgba(34, 197, 94, 0.7);
+}
+
+.vehicle-view-container .distance-bars.level-safe-single .distance-bar:nth-child(4) {
+    border-top-color: #22c55e;
+    box-shadow: 0 0 10px rgba(34, 197, 94, 0.7);
+}
+
+.vehicle-view-container .distance-bars.level-warning-outer .distance-bar:nth-child(3) {
+    border-top-color: #f59e0b;
+    box-shadow: 0 0 8px rgba(245, 158, 11, 0.6);
+}
+
+.vehicle-view-container .distance-bars.level-warning-inner .distance-bar:nth-child(2) {
+    border-top-color: #f59e0b;
+    box-shadow: 0 0 8px rgba(245, 158, 11, 0.6);
+}
+
+.vehicle-view-container .distance-bars.level-danger .distance-bar:nth-child(1) {
+    border-top-color: #ef4444;
+    box-shadow: 0 0 12px rgba(239, 68, 68, 0.8);
+    animation: criticalPulse 0.6s infinite;
+}
+
+.vehicle-view-container .distance-bars.level-safe-double::before,
+.vehicle-view-container .distance-bars.level-safe-single::before {
+    background: #22c55e;
+    box-shadow: 0 0 6px rgba(34, 197, 94, 0.6);
+}
+
+.vehicle-view-container .distance-bars.level-warning-outer::before,
+.vehicle-view-container .distance-bars.level-warning-inner::before {
+    background: #f59e0b;
+    box-shadow: 0 0 6px rgba(245, 158, 11, 0.6);
+}
+
+.vehicle-view-container .distance-bars.level-danger::before {
+    background: #ef4444;
+    box-shadow: 0 0 8px rgba(239, 68, 68, 0.8);
+}
+
+/* Active states - distance-based coloring */
+.distance-bar.safe {
+    border-top-color: #22c55e;
+    box-shadow: 0 0 8px rgba(34, 197, 94, 0.6);
+}
+
+.distance-bar.active {
+    border-top-color: #22c55e;
+    box-shadow: 0 0 8px rgba(34, 197, 94, 0.6);
+}
+
+.distance-bar.warning {
+    border-top-color: #f59e0b;
+    box-shadow: 0 0 8px rgba(245, 158, 11, 0.6);
+}
+
+.distance-bar.critical {
+    border-top-color: #ef4444;
+    box-shadow: 0 0 12px rgba(239, 68, 68, 0.8);
+    animation: criticalPulse 0.6s infinite;
+}
+
+.distance-bars.active::before {
+    background: #22c55e;
+    box-shadow: 0 0 6px rgba(34, 197, 94, 0.6);
+}
+
+.distance-bars.warning::before {
+    background: #f59e0b;
+    box-shadow: 0 0 6px rgba(245, 158, 11, 0.6);
+}
+
+.distance-bars.critical::before {
+    background: #ef4444;
+    box-shadow: 0 0 8px rgba(239, 68, 68, 0.8);
+}
+
+@keyframes criticalPulse {
+    0%, 100% { 
+        opacity: 1; 
+        transform: translateX(-50%) scale(1);
+    }
+    50% { 
+        opacity: 0.7; 
+        transform: translateX(-50%) scale(1.1);
+    }
+}
+
+/* Vehicle Area */
+.vehicle-area {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 35px;
+    flex: 1;
+    width: 100%;
+    position: relative;
+}
+
+/* Vehicle Body (realistic top-down view) */
+.vehicle-body {
+    position: relative;
+    width: 60px;
+    height: 120px;
+    z-index: 10;
+    transform: rotate(0deg);
+    background: linear-gradient(180deg, 
+        #1e40af 0%,     /* Deep blue front */
+        #3b82f6 20%,    /* Bright blue windshield area */
+        #2563eb 40%,    /* Medium blue roof */
+        #1d4ed8 60%,    /* Blue middle */
+        #2563eb 80%,    /* Medium blue */
+        #1e40af 100%    /* Deep blue rear */
+    );
+    border-radius: 25px 25px 15px 15px;
+    box-shadow: 
+        0 6px 20px rgba(59, 130, 246, 0.4),
+        inset 0 2px 4px rgba(255, 255, 255, 0.3),
+        inset 0 -2px 4px rgba(0, 0, 0, 0.2);
+    border: 2px solid rgba(30, 64, 175, 0.6);
+    border-top: 3px solid rgba(255, 255, 255, 0.8);
+    border-bottom: 3px solid rgba(239, 68, 68, 0.6);
+}
+
+/* Car windshield */
+.vehicle-body::before {
+    content: '';
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    right: 8px;
+    height: 25px;
+    background: linear-gradient(180deg, 
+        rgba(147, 197, 253, 0.7) 0%,
+        rgba(96, 165, 250, 0.4) 100%
+    );
+    border-radius: 15px 15px 5px 5px;
+    box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.5);
+    border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+/* Car roof details */
+.vehicle-body::after {
+    content: '';
+    position: absolute;
+    top: 40px;
+    left: 12px;
+    right: 12px;
+    height: 40px;
+    background: linear-gradient(180deg, 
+        rgba(59, 130, 246, 0.3) 0%,
+        rgba(37, 99, 235, 0.2) 100%
+    );
+    border-radius: 8px;
+    border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+/* Car wheels */
+.car-wheel {
+    position: absolute;
+    width: 12px;
+    height: 18px;
+    background: linear-gradient(180deg, #1f2937 0%, #374151 50%, #1f2937 100%);
+    border-radius: 4px;
+    border: 1px solid #111827;
+    box-shadow: 
+        0 2px 4px rgba(0, 0, 0, 0.5),
+        inset 0 1px 2px rgba(255, 255, 255, 0.1);
+}
+
+.car-wheel.front-left {
+    top: 20px;
+    left: -8px;
+}
+
+.car-wheel.front-right {
+    top: 20px;
+    right: -8px;
+}
+
+.car-wheel.rear-left {
+    bottom: 20px;
+    left: -8px;
+}
+
+.car-wheel.rear-right {
+    bottom: 20px;
+    right: -8px;
+}
+
+/* Remove complex box-shadow from pseudo elements */
+.vehicle-area .vehicle-body:before {
+    box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.5);
+}
+
+.vehicle-area .vehicle-body:after {
+    box-shadow: inset 0 1px 2px rgba(59, 130, 246, 0.1);
+}
+
+/* Add car side mirrors */
+.vehicle-area::before,
+.vehicle-area::after {
+    content: '';
+    position: absolute;
+    width: 8px;
+    height: 6px;
+    background: linear-gradient(90deg, #1e40af, #3b82f6);
+    border-radius: 3px;
+    top: 50%;
+    transform: translateY(-50%);
+    box-shadow: 0 2px 6px rgba(59, 130, 246, 0.4);
+    z-index: 8;
+}
+
+.vehicle-area::before {
+    left: calc(50% - 45px);
+}
+
+.vehicle-area::after {
+    right: calc(50% - 45px);
+}
+
+/* Lane Lines */
+.lane-line {
+    width: 5px;
+    height: 130px;
+    background: rgba(100, 116, 139, 0.6);
+    border-radius: 3px;
+    transition: all 0.3s ease;
+    position: relative;
+    transform-origin: bottom center;
+}
+
+.lane-line.left-line {
+    transform: skewX(-10deg);
+    margin-left: 8px;
+}
+
+.lane-line.right-line {
+    transform: skewX(10deg);
+    margin-right: 8px;
+}
+
+.lane-line.warning {
+    background: #ef4444;
+    box-shadow: 0 0 10px rgba(239, 68, 68, 0.8);
+    animation: laneWarning 0.8s infinite;
+}
+
+@keyframes laneWarning {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+}
+
+/* Pedestrian Icons */
+.pedestrian-icon {
+    font-size: 3em;
+    opacity: 0.5;
+    transition: all 0.3s ease;
+    position: absolute;
+}
+
+.pedestrian-icon.left-pedestrian {
+    left: -15px;
+    top: 32%;
+    transform: translateY(-50%);
+}
+
+.pedestrian-icon.right-pedestrian {
+    right: -15px;
+    top: 32%;
+    transform: translateY(-50%);
+}
+
+.pedestrian-icon.detected {
+    opacity: 1;
+    color: #ef4444;
+    text-shadow: 0 0 15px rgba(239, 68, 68, 0.8);
+    animation: pedestrianBlink 0.6s infinite;
+}
+
+@keyframes pedestrianBlink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+}
+
+/* Global Warning */
+.global-warning {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 10px;
+    opacity: 0.5;
+    transition: all 0.3s ease;
+}
+
+.global-warning.active {
+    opacity: 1;
+    animation: globalWarningBlink 1s infinite;
+}
+
+@keyframes globalWarningBlink {
+    0%, 100% { 
+        color: #ef4444; 
+        text-shadow: 0 0 15px rgba(239, 68, 68, 0.8);
+    }
+    50% { 
+        color: #f59e0b; 
+        text-shadow: 0 0 15px rgba(245, 158, 11, 0.8);
+    }
+}
+
+.warning-exclamation {
+    font-size: 1.2em;
+}
+
+.warning-text {
+    font-size: 0.8em;
+    font-weight: 500;
+    color: #94a3b8;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+    .dashboard {
+        height: 70vh;
+    }
+
+    .gauge-container {
+        max-width: 400px;
+    }
+
+    .adas-container {
+        max-width: 250px;
+    }
+}
+
+/* Emergency Stop Visualization */
+.distance-visualization {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 10px 0;
+    height: 40px;
+}
+
+.distance-indicator {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.distance-bars {
+    display: flex;
+    gap: 3px;
+}
+
+.distance-bar {
+    width: 12px;
+    height: 20px;
+    background: rgba(100, 116, 139, 0.3);
+    border-radius: 2px;
+    transition: all 0.3s ease;
+}
+
+.distance-bar.safe {
+    background: #22c55e;
+    box-shadow: 0 0 8px rgba(34, 197, 94, 0.6);
+}
+
+.distance-bar.active {
+    background: #22c55e;
+    box-shadow: 0 0 8px rgba(34, 197, 94, 0.6);
+}
+
+.distance-bar.warning {
+    background: #eab308;
+    box-shadow: 0 0 8px rgba(234, 179, 8, 0.6);
+}
+
+.distance-bar.danger {
+    background: #ef4444;
+    box-shadow: 0 0 8px rgba(239, 68, 68, 0.8);
+    animation: blink 0.5s infinite;
+}
+
+.obstacle-icon {
+    font-size: 1.2em;
+    color: rgba(100, 116, 139, 0.5);
+    transition: all 0.3s ease;
+}
+
+.obstacle-icon.active {
+    color: #ef4444;
+    filter: drop-shadow(0 0 8px rgba(239, 68, 68, 0.6));
+}
+
+/* Pedestrian Visualization */
+.pedestrian-visualization {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 10px 0;
+    height: 40px;
+}
+
+.ped-indicator {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.ped-icon {
+    font-size: 1.2em;
+    filter: grayscale(100%);
+    transition: all 0.3s ease;
+    opacity: 0.5;
+}
+
+.ped-light {
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    background: rgba(100, 116, 139, 0.3);
+    transition: all 0.3s ease;
+}
+
+.ped-light.active {
+    background: #ef4444;
+    box-shadow: 0 0 12px rgba(239, 68, 68, 0.8);
+    animation: blink 1s infinite;
+}
+
+.ped-indicator.warning .ped-icon {
+    filter: grayscale(0%);
+    filter: drop-shadow(0 0 8px rgba(239, 68, 68, 0.6));
+    opacity: 1;
+}
+
+/* Warning Indicator */
+.warning-indicator {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 8px;
+    padding: 6px 10px;
+    background: rgba(15, 23, 42, 0.4);
+    border-radius: 6px;
+    transition: all 0.3s ease;
+    font-size: 0.8em;
+}
+
+.warning-indicator.active {
+    background: rgba(239, 68, 68, 0.2);
+    border: 1px solid rgba(239, 68, 68, 0.4);
+}
+
+.warning-icon {
+    font-size: 1em;
+    opacity: 0.4;
+    transition: opacity 0.3s ease;
+}
+
+.warning-indicator.active .warning-icon {
+    opacity: 1;
+    animation: blink 1s infinite;
+}
+
+.warning-text {
+    color: #94a3b8;
+    transition: color 0.3s ease;
+    font-weight: 500;
+}
+
+.warning-indicator.active .warning-text {
+    color: #ef4444;
+    font-weight: 600;
+}
+
+.distance-display {
+    text-align: center;
+    margin-top: 6px;
+    font-size: 0.75em;
+    color: #64748b;
+    font-weight: 500;
+}
+
+/* Footer */
+.dashboard-footer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 8px 20px;
+    background: linear-gradient(90deg, rgba(59, 130, 246, 0.1) 0%, rgba(29, 78, 216, 0.2) 100%);
+    backdrop-filter: blur(10px);
+    border-top: 1px solid rgba(59, 130, 246, 0.2);
+    font-size: 0.75em;
+    gap: 20px;
+}
+
+.connection-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.last-update {
+    color: #64748b;
+}
+
+/* Animations */
+@keyframes blink {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0.3; }
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+    .dashboard {
+        height: 60vh;
+    }
+    
+    .dashboard-content {
+        padding: 15px 20px;
+        gap: 20px;
+    }
+    
+    .gauge-container {
+        max-width: 220px;
+    }
+    
+    .gauge {
+        width: 200px;
+        height: 200px;
+    }
+    
+    .needle {
+        height: 80px;
+    }
+    
+    .speedometer .gauge-markings {
+        mask: radial-gradient(circle, transparent 70px, black 75px, black 95px, transparent 100px);
+    }
+    
+    .tachometer .gauge-markings {
+        mask: radial-gradient(circle, transparent 70px, black 75px, black 95px, transparent 100px);
+    }
+}
+
+@media (max-width: 768px) {
+    .dashboard {
+        width: 95vw;
+        height: 70vh;
+    }
+    
+    .dashboard-content {
+        flex-direction: column;
+        gap: 15px;
+        padding: 10px 15px;
+    }
+    
+    .gauge-container {
+        max-width: 160px;
+    }
+    
+    .gauge {
+        width: 150px;
+        height: 150px;
+    }
+    
+    .needle {
+        height: 60px;
+    }
+    
+    .speedometer .gauge-markings {
+        mask: radial-gradient(circle, transparent 50px, black 55px, black 70px, transparent 75px);
+    }
+    
+    .tachometer .gauge-markings {
+        mask: radial-gradient(circle, transparent 50px, black 55px, black 70px, transparent 75px);
+    }
+    
+    .adas-container {
+        max-width: 100%;
+        gap: 10px;
+    }
+    
+    .dashboard-header h1 {
+        font-size: 1.1em;
+    }
+    
+    .dashboard-footer {
+        padding: 6px 15px;
+        font-size: 0.7em;
+    }
+    
+    .digital-display {
+        padding: 6px 12px;
+    }
+    
+    .digital-display span {
+        font-size: 1.4em;
+    }
+}

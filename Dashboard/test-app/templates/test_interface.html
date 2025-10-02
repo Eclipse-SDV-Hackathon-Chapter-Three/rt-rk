@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vehicle Dashboard Test Interface</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: #ffffff;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            color: #3498db;
+            margin-bottom: 10px;
+            text-shadow: 0 0 10px rgba(52, 152, 219, 0.5);
+        }
+
+        .status {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #e74c3c;
+            animation: pulse 2s infinite;
+        }
+
+        .status-dot.connected {
+            background: #2ecc71;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .controls-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .control-panel {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+        }
+
+        .control-panel h3 {
+            color: #3498db;
+            margin-bottom: 20px;
+            font-size: 1.3em;
+            text-align: center;
+            border-bottom: 1px solid rgba(52, 152, 219, 0.3);
+            padding-bottom: 10px;
+        }
+
+        .control-group {
+            margin-bottom: 20px;
+        }
+
+        .control-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #bdc3c7;
+            font-weight: bold;
+        }
+
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        input[type="range"] {
+            flex: 1;
+            height: 8px;
+            border-radius: 4px;
+            background: #34495e;
+            outline: none;
+            opacity: 0.8;
+            transition: opacity 0.3s;
+        }
+
+        input[type="range"]:hover {
+            opacity: 1;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #3498db;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(52, 152, 219, 0.5);
+        }
+
+        .value-display {
+            min-width: 80px;
+            text-align: center;
+            background: rgba(52, 152, 219, 0.2);
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 1px solid #3498db;
+            color: #3498db;
+            font-weight: bold;
+        }
+
+        input[type="number"] {
+            width: 100%;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid #34495e;
+            border-radius: 8px;
+            color: white;
+            font-size: 1em;
+        }
+
+        input[type="number"]:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 10px rgba(52, 152, 219, 0.3);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            flex: 1;
+            min-width: 80px;
+            padding: 12px 16px;
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-size: 0.9em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        button:hover {
+            background: linear-gradient(135deg, #2980b9 0%, #1abc9c 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .warning-btn {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+        }
+
+        .warning-btn:hover {
+            background: linear-gradient(135deg, #c0392b 0%, #e67e22 100%);
+        }
+
+        .clear-btn {
+            background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%);
+        }
+
+        .clear-btn:hover {
+            background: linear-gradient(135deg, #7f8c8d 0%, #95a5a6 100%);
+        }
+
+        .simulation-panel {
+            grid-column: 1 / -1;
+            text-align: center;
+            background: rgba(46, 204, 113, 0.1);
+            border: 1px solid rgba(46, 204, 113, 0.3);
+        }
+
+        .simulation-panel h3 {
+            color: #2ecc71;
+            border-bottom-color: rgba(46, 204, 113, 0.3);
+        }
+
+        .big-button {
+            width: 100%;
+            max-width: 300px;
+            margin: 0 auto;
+            padding: 20px;
+            font-size: 1.1em;
+            background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+        }
+
+        .big-button:hover {
+            background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+        }
+
+        .links {
+            text-align: center;
+            margin-top: 30px;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+        }
+
+        .links a {
+            color: #3498db;
+            text-decoration: none;
+            font-size: 1.1em;
+            margin: 0 15px;
+            padding: 10px 20px;
+            border: 1px solid #3498db;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            display: inline-block;
+        }
+
+        .links a:hover {
+            background: #3498db;
+            color: white;
+        }
+
+        .response-message {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: bold;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .response-message.success {
+            background: rgba(46, 204, 113, 0.2);
+            border: 1px solid #2ecc71;
+            color: #2ecc71;
+            opacity: 1;
+        }
+
+        .response-message.error {
+            background: rgba(231, 76, 60, 0.2);
+            border: 1px solid #e74c3c;
+            color: #e74c3c;
+            opacity: 1;
+        }
+
+        @media (max-width: 768px) {
+            .controls-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .button-group {
+                flex-direction: column;
+            }
+            
+            button {
+                min-width: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚗 Vehicle Dashboard Test Interface</h1>
+            <p>Send test data to the vehicle dashboard</p>
+            <div class="status">
+                <span class="status-dot" id="statusDot"></span>
+                <span id="statusText">Checking connection...</span>
+            </div>
+        </div>
+
+        <div class="controls-grid">
+            <!-- Speed Control -->
+            <div class="control-panel">
+                <h3>🏎️ Speed Control</h3>
+                <div class="control-group">
+                    <label>Speed (km/h)</label>
+                    <div class="slider-container">
+                        <input type="range" id="speedSlider" min="0" max="200" value="0">
+                        <div class="value-display" id="speedValue">0 km/h</div>
+                    </div>
+                </div>
+                <button onclick="sendSpeed()">Send Speed</button>
+                <div class="response-message" id="speedResponse"></div>
+            </div>
+
+            <!-- RPM Control -->
+            <div class="control-panel">
+                <h3>⚙️ RPM Control</h3>
+                <div class="control-group">
+                    <label>Engine RPM</label>
+                    <div class="slider-container">
+                        <input type="range" id="rpmSlider" min="0" max="8000" value="0">
+                        <div class="value-display" id="rpmValue">0 RPM</div>
+                    </div>
+                </div>
+                <button onclick="sendRPM()">Send RPM</button>
+                <div class="response-message" id="rpmResponse"></div>
+            </div>
+
+            <!-- Lane Assist -->
+            <div class="control-panel">
+                <h3>🛣️ Lane Assist</h3>
+                <div class="control-group">
+                    <label>Lane Warning Direction</label>
+                    <div class="button-group">
+                        <button class="warning-btn" onclick="sendLaneWarning('LEFT')">⬅️ Left</button>
+                        <button class="warning-btn" onclick="sendLaneWarning('RIGHT')">➡️ Right</button>
+                        <button class="clear-btn" onclick="clearLaneWarning()">Clear</button>
+                    </div>
+                </div>
+                <div class="response-message" id="laneResponse"></div>
+            </div>
+
+            <!-- Emergency Stop -->
+            <div class="control-panel">
+                <h3>🛑 Emergency Stop</h3>
+                <div class="control-group">
+                    <label>Obstacle Distance (meters)</label>
+                    <input type="number" id="distanceInput" placeholder="Enter distance" min="0" max="100" value="15">
+                </div>
+                <div class="button-group">
+                    <button class="warning-btn" onclick="sendEmergency()">⚠️ Send Warning</button>
+                    <button class="clear-btn" onclick="clearEmergency()">Clear</button>
+                </div>
+                <div class="response-message" id="emergencyResponse"></div>
+            </div>
+
+            <!-- Pedestrian Detection -->
+            <div class="control-panel">
+                <h3>🚶 Pedestrian Detection</h3>
+                <div class="control-group">
+                    <label>Pedestrian Position</label>
+                    <div class="button-group">
+                        <button class="warning-btn" onclick="sendPedestrian('LEFT')">⬅️ Left</button>
+                        <button class="warning-btn" onclick="sendPedestrian('RIGHT')">➡️ Right</button>
+                        <button class="clear-btn" onclick="clearPedestrian()">Clear</button>
+                    </div>
+                </div>
+                <div class="response-message" id="pedestrianResponse"></div>
+            </div>
+
+            <!-- Global Controls -->
+            <div class="control-panel">
+                <h3>🔧 Global Controls</h3>
+                <div class="button-group">
+                    <button class="clear-btn" onclick="clearAllWarnings()">Clear All Warnings</button>
+                    <button onclick="checkConnection()">Check Connection</button>
+                </div>
+                <div class="response-message" id="globalResponse"></div>
+            </div>
+
+            <!-- Simulation -->
+            <div class="control-panel simulation-panel">
+                <h3>🎮 Driving Simulation</h3>
+                <p>Automatically simulate realistic driving scenario with random events</p>
+                <br>
+                <button class="big-button" onclick="startSimulation()">Start 60s Simulation</button>
+                <div class="response-message" id="simulationResponse"></div>
+            </div>
+        </div>
+
+        <div class="links">
+            <a href="http://localhost:5000" target="_blank">📊 Open Dashboard</a>
+            <a href="#" onclick="location.reload()">🔄 Refresh</a>
+        </div>
+    </div>
+
+    <script>
+        // Update slider displays
+        document.getElementById('speedSlider').addEventListener('input', function(e) {
+            document.getElementById('speedValue').textContent = e.target.value + ' km/h';
+        });
+
+        document.getElementById('rpmSlider').addEventListener('input', function(e) {
+            document.getElementById('rpmValue').textContent = e.target.value + ' RPM';
+        });
+
+        // API call helper
+        async function apiCall(endpoint, data, responseElementId) {
+            const responseElement = document.getElementById(responseElementId);
+            try {
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+                
+                if (response.ok) {
+                    showResponse(responseElementId, 'success', 'Success!');
+                } else {
+                    showResponse(responseElementId, 'error', result.message || 'Error occurred');
+                }
+            } catch (error) {
+                showResponse(responseElementId, 'error', 'Connection failed');
+                console.error('Error:', error);
+            }
+        }
+
+        function showResponse(elementId, type, message) {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.className = `response-message ${type}`;
+            setTimeout(() => {
+                element.className = 'response-message';
+            }, 3000);
+        }
+
+        // Control functions
+        function sendSpeed() {
+            const speed = document.getElementById('speedSlider').value;
+            apiCall('/api/send-speed', { speed: parseInt(speed) }, 'speedResponse');
+        }
+
+        function sendRPM() {
+            const rpm = document.getElementById('rpmSlider').value;
+            apiCall('/api/send-rpm', { rpm: parseInt(rpm) }, 'rpmResponse');
+        }
+
+        function sendLaneWarning(direction) {
+            apiCall('/api/send-lane-warning', { direction: direction }, 'laneResponse');
+        }
+
+        function clearLaneWarning() {
+            apiCall('/api/send-lane-warning', { direction: null }, 'laneResponse');
+        }
+
+        function sendEmergency() {
+            const distance = document.getElementById('distanceInput').value;
+            apiCall('/api/send-emergency', { distance: parseFloat(distance) }, 'emergencyResponse');
+        }
+
+        function clearEmergency() {
+            apiCall('/api/send-emergency', { distance: 0 }, 'emergencyResponse');
+        }
+
+        function sendPedestrian(direction) {
+            apiCall('/api/send-pedestrian', { direction: direction }, 'pedestrianResponse');
+        }
+
+        function clearPedestrian() {
+            apiCall('/api/send-pedestrian', { direction: null }, 'pedestrianResponse');
+        }
+
+        function clearAllWarnings() {
+            apiCall('/api/clear-warnings', {}, 'globalResponse');
+        }
+
+        async function startSimulation() {
+            try {
+                const response = await fetch('/api/start-simulation', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+
+                const result = await response.json();
+                
+                if (response.ok) {
+                    showResponse('simulationResponse', 'success', 'Simulation started! Watch the dashboard for 60 seconds.');
+                } else {
+                    showResponse('simulationResponse', 'error', result.message || 'Error starting simulation');
+                }
+            } catch (error) {
+                showResponse('simulationResponse', 'error', 'Connection failed');
+            }
+        }
+
+        async function checkConnection() {
+            try {
+                const response = await fetch('/api/check-dashboard');
+                const result = await response.json();
+                
+                if (response.ok) {
+                    updateConnectionStatus(true);
+                    showResponse('globalResponse', 'success', 'Dashboard connected');
+                } else {
+                    updateConnectionStatus(false);
+                    showResponse('globalResponse', 'error', 'Dashboard not accessible');
+                }
+            } catch (error) {
+                updateConnectionStatus(false);
+                showResponse('globalResponse', 'error', 'Connection check failed');
+            }
+        }
+
+        function updateConnectionStatus(connected) {
+            const statusDot = document.getElementById('statusDot');
+            const statusText = document.getElementById('statusText');
+            
+            if (connected) {
+                statusDot.classList.add('connected');
+                statusText.textContent = 'Dashboard Connected';
+            } else {
+                statusDot.classList.remove('connected');
+                statusText.textContent = 'Dashboard Disconnected';
+            }
+        }
+
+        // Check connection on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            checkConnection();
+            
+            // Auto-check connection every 10 seconds
+            setInterval(checkConnection, 10000);
+        });
+    </script>
+</body>
+</html>
