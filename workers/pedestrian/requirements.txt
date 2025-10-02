@@ -1,0 +1,5 @@
+eclipse-zenoh==0.11.0
+numpy
+opencv-contrib-python
+requests
+ultralytics

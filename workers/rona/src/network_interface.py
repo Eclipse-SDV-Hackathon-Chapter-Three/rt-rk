@@ -48,6 +48,7 @@ class ZenohCameraSubscriber:
     
     def camera_handler(self, sample):
         """Handler for camera frame messages."""
+        print(f"RONA: Camera frame message received")
         try:
             payload_str = self.decode_zenoh_payload(sample.payload)
             data = json.loads(payload_str)
