@@ -50,6 +50,11 @@ vehicle_data = {
     'timestamp': datetime.now().isoformat()
 }
 
+# Timestamp of last lane warning activity (for auto-clearing)
+last_lane_warning_time = None
+# Timestamp of last pedestrian warning activity (for auto-clearing)
+last_pedestrian_warning_time = None
+
 # Zenoh subscriber handlers
 def speed_handler(sample):
     """Handle speed data from Zenoh topic"""
@@ -88,6 +93,7 @@ def rpm_handler(sample):
 
 def pedestrian_warning_handler(sample):
     """Handle pedestrian warning data from Zenoh topic"""
+    global last_pedestrian_warning_time
     try:
         payload_str = decode_zenoh_payload(sample.payload)
         # The payload should contain "LEFT" or "RIGHT" or be empty/null for no warning
@@ -95,9 +101,11 @@ def pedestrian_warning_handler(sample):
         
         if warning_direction in ['LEFT', 'RIGHT']:
             vehicle_data['pedestrian_warning'] = warning_direction
+            last_pedestrian_warning_time = time.time()  # Update last activity time
             print(f"🚶 Pedestrian detected: {warning_direction} side")
         else:
             vehicle_data['pedestrian_warning'] = None
+            last_pedestrian_warning_time = None  # Clear timestamp when warning is cleared
             if warning_direction:  # Only log if there was some content
                 print(f"🚶 Pedestrian warning cleared")
         
@@ -139,6 +147,7 @@ def emergency_stop_handler(sample):
 
 def lane_warning_handler(sample):
     """Handle lane warning data from Zenoh topic"""
+    global last_lane_warning_time
     try:
         payload_str = decode_zenoh_payload(sample.payload)
         # The payload should contain "LEFT" or "RIGHT" or be empty/null for no warning
@@ -146,9 +155,11 @@ def lane_warning_handler(sample):
         
         if warning_direction in ['LEFT', 'RIGHT']:
             vehicle_data['lane_warning'] = warning_direction
+            last_lane_warning_time = time.time()  # Update last activity time
             print(f"🛣️  Lane warning: Vehicle approaching {warning_direction} line")
         else:
             vehicle_data['lane_warning'] = None
+            last_lane_warning_time = None  # Clear timestamp when warning is cleared
             if warning_direction:  # Only log if there was some content
                 print(f"🛣️  Lane warning cleared")
         
@@ -156,6 +167,40 @@ def lane_warning_handler(sample):
         
     except Exception as e:
         print(f"Error processing lane warning data: {e}")
+
+def warnings_timeout_checker():
+    """Background thread function to clear warnings after 2 seconds of inactivity"""
+    global last_lane_warning_time, last_pedestrian_warning_time
+    
+    while True:
+        try:
+            # Check lane warning timeout
+            if (last_lane_warning_time is not None and 
+                vehicle_data['lane_warning'] is not None and 
+                time.time() - last_lane_warning_time > 2.0):
+                
+                # Clear the lane warning after 2 seconds of inactivity
+                vehicle_data['lane_warning'] = None
+                last_lane_warning_time = None
+                vehicle_data['timestamp'] = datetime.now().isoformat()
+                print(f"🛣️  Lane warning cleared due to timeout (2s)")
+            
+            # Check pedestrian warning timeout
+            if (last_pedestrian_warning_time is not None and 
+                vehicle_data['pedestrian_warning'] is not None and 
+                time.time() - last_pedestrian_warning_time > 2.0):
+                
+                # Clear the pedestrian warning after 2 seconds of inactivity
+                vehicle_data['pedestrian_warning'] = None
+                last_pedestrian_warning_time = None
+                vehicle_data['timestamp'] = datetime.now().isoformat()
+                print(f"🚶 Pedestrian warning cleared due to timeout (2s)")
+                
+            time.sleep(0.1)  # Check every 100ms for responsiveness
+            
+        except Exception as e:
+            print(f"Error in warnings timeout checker: {e}")
+            time.sleep(1)  # Wait longer on error
 
 @app.route('/')
 def dashboard():
@@ -359,6 +404,7 @@ if __name__ == '__main__':
     print("- GET /api/vehicle-data - Get current vehicle data")
     print("- POST /api/clear-warnings - Clear all warnings")
     print("\nNote: Speed, RPM, Pedestrian warnings, Emergency stop, and Lane warnings are now updated automatically via Zenoh subscribers")
+    print("Lane and Pedestrian warnings will be automatically cleared after 2 seconds of inactivity")
     
     # Initialize Zenoh in a separate thread to avoid blocking Flask startup
     def init_zenoh_thread():
@@ -367,5 +413,9 @@ if __name__ == '__main__':
     
     zenoh_thread = threading.Thread(target=init_zenoh_thread, daemon=True)
     zenoh_thread.start()
+    
+    # Start warnings timeout checker thread
+    timeout_thread = threading.Thread(target=warnings_timeout_checker, daemon=True)
+    timeout_thread.start()
     
     app.run(debug=True, host='0.0.0.0', port=5000)
