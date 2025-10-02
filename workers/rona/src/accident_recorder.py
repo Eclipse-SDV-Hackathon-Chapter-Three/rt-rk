@@ -5,7 +5,7 @@ import time
 from collections import deque
 from datetime import datetime
 import os
-from .network_interface import receive_frame_from_network, receive_obstacle_sensor_data
+from .network_interface import receive_frame_from_network, receive_collision_sensor_data
 
 
 class AccidentRecorder:
@@ -178,6 +178,8 @@ class AccidentRecorder:
                 self.accident_frames.append(frame_data)
             
             # No artificial delay - just process frames as they arrive
+            # Add delay managed by user set fps
+            time.sleep(1.0 / self.default_fps)
         
         # Save the accident recording
         self._save_accident_recording()
@@ -263,8 +265,8 @@ class AccidentRecorder:
                 # Add frame to buffer (this will track timing and calculate FPS)
                 self.add_frame_to_buffer(frame)
                 
-                # Check for obstacle sensor data
-                sensor_data = receive_obstacle_sensor_data()
+                # Check for collision sensor data
+                sensor_data = receive_collision_sensor_data()
                 
                 if sensor_data and sensor_data.get('collision_detected', False):
                     self.collision_detected(sensor_data)

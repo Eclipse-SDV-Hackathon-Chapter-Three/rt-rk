@@ -118,13 +118,12 @@ class ZenohCameraSubscriber:
             print("🔌 RONA: Disconnected from Zenoh")
 
 
-class ZenohObstacleSubscriber:
-    """Zenoh subscriber for obstacle/collision sensor data."""
+class ZenohCollisionSubscriber:
+    """Zenoh subscriber for collision sensor data."""
     
     def __init__(self):
         self.session = None
         self.subscriber = None
-        self.obstacle_distance = None
         self.collision_detected = False
         self.last_update_time = 0
         self.connected = False
@@ -152,34 +151,24 @@ class ZenohObstacleSubscriber:
         except Exception as e:
             raise ValueError(f"Failed to decode Zenoh payload: {e}")
     
-    def obstacle_handler(self, sample):
-        """Handler for obstacle distance messages."""
+    def collision_handler(self, sample):
+        """Handler for collision status messages."""
         try:
             payload_str = self.decode_zenoh_payload(sample.payload)
             data = json.loads(payload_str)
-            distance = data['distance_meters']
-            status = data['status']
+            collision_detected = data['collision_detected']
             timestamp = data['timestamp']
             
-            if status == 'detected':
-                self.obstacle_distance = distance
-                self.last_update_time = time.time()
-                
-                # Determine if this is close enough to be considered a collision
-                # For accident recording, we consider anything < 1 meter as potential collision
-                if distance < 1.0:
-                    self.collision_detected = True
-                    print(f"🚨 RONA: Collision detected! Obstacle at {distance:.1f}m at {timestamp}")
-                else:
-                    self.collision_detected = False
-                    print(f"⚠️  RONA: Obstacle detected: {distance:.1f}m at {timestamp}")
+            self.collision_detected = collision_detected
+            self.last_update_time = time.time()
+            
+            if collision_detected:
+                print(f"🚨 RONA: COLLISION DETECTED at {timestamp}")
             else:
-                self.obstacle_distance = None
-                self.collision_detected = False
-                self.last_update_time = time.time()
+                print(f"✅ RONA: No collision at {timestamp}")
                 
         except Exception as e:
-            print(f"❌ RONA: Error processing obstacle data: {e}")
+            print(f"❌ RONA: Error processing collision data: {e}")
     
     def connect(self):
         """Connect to Zenoh and setup subscriber."""
@@ -187,28 +176,28 @@ class ZenohObstacleSubscriber:
             return
             
         try:
-            print("🔄 RONA: Connecting to Zenoh for obstacle data...")
+            print("🔄 RONA: Connecting to Zenoh for collision data...")
             zenoh_config = zenoh.Config()
             zenoh_config.insert_json5("mode", json.dumps("peer"))
             zenoh_config.insert_json5("connect/endpoints", json.dumps(["tcp/192.168.33.243:7447"]))
             
             self.session = zenoh.open(zenoh_config)
-            print("✅ RONA: Connected to Zenoh for obstacle data")
+            print("✅ RONA: Connected to Zenoh for collision data")
             
-            # Subscribe to obstacle distance
+            # Subscribe to collision status
             base_topic = 'carla/tesla'
-            obstacle_topic = f"{base_topic}/sensors/obstacle_distance"
-            self.subscriber = self.session.declare_subscriber(obstacle_topic, self.obstacle_handler)
+            collision_topic = f"{base_topic}/sensors/collision_status"
+            self.subscriber = self.session.declare_subscriber(collision_topic, self.collision_handler)
             
-            print(f"📡 RONA: Subscribed to: {obstacle_topic}")
+            print(f"📡 RONA: Subscribed to: {collision_topic}")
             self.connected = True
             
         except Exception as e:
-            print(f"❌ RONA: Error connecting to Zenoh for obstacle data: {e}")
+            print(f"❌ RONA: Error connecting to Zenoh for collision data: {e}")
             self.connected = False
     
-    def get_sensor_data(self) -> Optional[Dict[str, Any]]:
-        """Get current obstacle sensor data if available and recent."""
+    def get_collision_data(self) -> Optional[Dict[str, Any]]:
+        """Get current collision sensor data if available and recent."""
         if not self.connected:
             self.connect()
             
@@ -218,7 +207,6 @@ class ZenohObstacleSubscriber:
             return None
             
         return {
-            'obstacle_distance': self.obstacle_distance,
             'collision_detected': self.collision_detected,
             'timestamp': self.last_update_time
         }
@@ -230,12 +218,12 @@ class ZenohObstacleSubscriber:
             self.session = None
             self.subscriber = None
             self.connected = False
-            print("🔌 RONA: Disconnected from Zenoh obstacle subscriber")
+            print("🔌 RONA: Disconnected from Zenoh collision subscriber")
 
 
 # Global subscriber instances
 _camera_subscriber = ZenohCameraSubscriber()
-_obstacle_subscriber = ZenohObstacleSubscriber()
+_collision_subscriber = ZenohCollisionSubscriber()
 
 
 def receive_frame_from_network() -> Optional[np.ndarray]:
@@ -249,16 +237,16 @@ def receive_frame_from_network() -> Optional[np.ndarray]:
     return _camera_subscriber.get_latest_frame()
 
 
-def receive_obstacle_sensor_data() -> Optional[Dict[str, Any]]:
+def receive_collision_sensor_data() -> Optional[Dict[str, Any]]:
     """
-    Function for receiving obstacle sensor data for collision detection.
+    Function for receiving collision sensor data for accident detection.
     Returns sensor data including collision status.
     
     Returns:
-        dict: Sensor data containing obstacle_distance, collision_detected, and timestamp
+        dict: Sensor data containing collision_detected and timestamp
               or None if no recent data available
     """
-    return _obstacle_subscriber.get_sensor_data()
+    return _collision_subscriber.get_collision_data()
 
 
 def cleanup_network_connections():
@@ -268,5 +256,5 @@ def cleanup_network_connections():
     """
     print("🧹 RONA: Cleaning up network connections...")
     _camera_subscriber.disconnect()
-    _obstacle_subscriber.disconnect()
+    _collision_subscriber.disconnect()
     print("✅ RONA: Network cleanup completed")

@@ -16,7 +16,7 @@ logger = logging.getLogger('RONA')
 class RONAWorker:
     def __init__(self):
         self.running = True
-        self.cycle_time = 1.0 / 30.0  # 30 FPS cycle time for real-time processing
+        self.cycle_time = 1.0 / 15.0  # 15 FPS cycle time for real-time processing
         self.recorder = None
         self.setup_signal_handlers()
         
@@ -41,7 +41,7 @@ class RONAWorker:
             
             # Initialize AccidentRecorder with configuration
             self.recorder = AccidentRecorder(
-                fps=30,
+                fps=15,
                 frame_width=640,
                 frame_height=360,
                 save_directory=recordings_dir
