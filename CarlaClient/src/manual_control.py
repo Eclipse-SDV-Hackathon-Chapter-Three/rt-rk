@@ -53,9 +53,6 @@ class ManualControl:
         pygame.display.set_caption('CARLA Manual Driving - WASD Controls')
         self.clock = pygame.time.Clock()
         
-        # Font za prikaz informacija
-        self.font = pygame.font.Font(None, 36)
-        
         self.running = True
         self.current_image = None
 
@@ -180,70 +177,8 @@ class ManualControl:
             # Skaliraj na display veličinu
             image_surface = pygame.transform.scale(image_surface, (640, 360))
             self.display.blit(image_surface, (0, 0))
-            
-            # Dodaj informacije o kontroli
-            self.render_info()
         
         pygame.display.flip()
-
-    def render_info(self):
-        """Prikazuje informacije o trenutnim kontrolama."""
-        # Velocity
-        velocity = self.vehicle.get_velocity()
-        speed = 3.6 * (velocity.x**2 + velocity.y**2 + velocity.z**2)**0.5
-        max_speed = self.get_max_speed_for_gear()
-        
-        # Control info
-        gear_display = self.get_gear_name()
-        reverse_status = " (RIKVERC)" if self.is_reverse_mode else ""
-        
-        info_lines = [
-            f"Speed: {speed:.1f}/{max_speed} km/h",
-            f"Gear: {gear_display}{reverse_status}",
-            f"Throttle: {self.control.throttle:.2f}",
-            f"Brake: {self.control.brake:.2f}",
-            f"Steer: {self.control.steer:.2f}",
-            "Controls: W-Gas, S-Brake, A/D-Steer, Q-HandBrake",
-            "Gears: R-Up/Exit Reverse, F-Down/Enter Reverse, Shift+R-Direct Reverse, ESC-Exit"
-        ]
-        
-        # Add pedestrian info if carla_setup is available
-        if self.carla_setup:
-            pedestrian_count = self.carla_setup.get_pedestrian_count()
-            info_lines.append(f"🚶 Pešaci: {pedestrian_count}/15")
-        
-        # Add ADAS status if subscriber is available
-        if self.adas_subscriber:
-            la_active, la_angle = self.adas_subscriber.get_lane_assist_override()
-            eb_active, eb_force = self.adas_subscriber.get_emergency_brake_override()
-            
-            if la_active:
-                info_lines.append(f"🛣️  Lane Assist: ON (angle: {la_angle:.2f})")
-            else:
-                info_lines.append("🛣️  Lane Assist: OFF")
-                
-            if eb_active:
-                info_lines.append(f"🚨 Emergency Brake: ON (force: {eb_force:.2f})")
-            else:
-                info_lines.append("🚨 Emergency Brake: OFF")
-        
-        y_offset = 10
-        for i, line in enumerate(info_lines):
-            # Color coding for different info types
-            if "RIKVERC" in line:
-                color = (255, 255, 0)  # Yellow for reverse mode
-            elif "Lane Assist: ON" in line:
-                color = (0, 255, 0)  # Green for active lane assist
-            elif "Emergency Brake: ON" in line:
-                color = (255, 0, 0)  # Red for active emergency brake
-            elif "🛣️" in line or "🚨" in line:
-                color = (200, 200, 200)  # Gray for inactive ADAS
-            else:
-                color = (255, 255, 255)  # White for normal info
-                
-            text_surface = self.font.render(line, True, color)
-            self.display.blit(text_surface, (10, y_offset))
-            y_offset += 30
 
     def run(self):
         """Glavna petlja za ručno upravljanje."""

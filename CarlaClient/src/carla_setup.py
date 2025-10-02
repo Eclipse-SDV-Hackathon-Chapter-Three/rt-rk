@@ -3,7 +3,18 @@ CARLA Setup Module
 ==================
 
 This module contains the CarlaSetup class that handles the initialization
-and management of CARLA world, vehicle, camera, and sensors.
+and managem        # Pronalaženje spawn tačaka
+        spawn_points = self.world.get_map().get_spawn_points()
+        if not spawn_points:
+            raise RuntimeError("No available spawn points!")
+        
+        # Odabir nasumične spawn tačke
+        spawn_point = random.choice(spawn_points)
+        self.logger.info(f"Selected spawn point: {spawn_point.location}")
+        
+        # Spawn vozila
+        self.vehicle = self.world.spawn_actor(vehicle_bp, spawn_point)
+        self.logger.info(f"Vehicle spawned with ID: {self.vehicle.id}") world, vehicle, camera, and sensors.
 """
 
 import carla
@@ -44,6 +55,17 @@ class CarlaSetup:
         self.max_pedestrians = 15
         self.pedestrian_spawn_distance = 50.0  # meters around vehicle
         
+        # Obstacle sensor filtering
+        self.ignored_obstacle_types = [
+            'static.road',
+            'static.sidewalk', 
+            'static.curb',
+            'static.lane_marking',
+            'static.crosswalk',
+            'static.grass',
+            'static.ground',
+        ]
+        
     def _setup_logging(self):
         """Setup logging system."""
         logging.basicConfig(
@@ -60,23 +82,23 @@ class CarlaSetup:
             bool: True if connection successful, False otherwise
         """
         try:
-            self.logger.info(f"Povezivanje sa CARLA serverom na {self.host}:{self.port}")
+            self.logger.info(f"Connecting to CARLA server at {self.host}:{self.port}")
             self.client = carla.Client(self.host, self.port)
             self.client.set_timeout(10.0)
             
             # Provera verzije
             version = self.client.get_server_version()
-            self.logger.info(f"CARLA server verzija: {version}")
-            print("Uspešno povezano sa CARLA simulatorom!")
+            self.logger.info(f"CARLA server version: {version}")
+            print("Successfully connected to CARLA simulator!")
             
             # Dobijanje sveta
             self.world = self.client.get_world()
-            self.logger.info("Dobijen CARLA svet")
+            self.logger.info("Got CARLA world")
             
             return True
             
         except Exception as e:
-            self.logger.error(f"Greška pri povezivanju: {e}")
+            self.logger.error(f"Connection error: {e}")
             return False
     
     def setup_synchronous_mode(self, fps=30):
@@ -93,7 +115,7 @@ class CarlaSetup:
         settings.synchronous_mode = True
         settings.fixed_delta_seconds = 1.0 / fps  # Convert FPS to delta time
         self.world.apply_settings(settings)
-        self.logger.info(f"Postavljen sinhronizovan mod sa {fps} FPS")
+        self.logger.info(f"Set synchronous mode with {fps} FPS")
     
     def spawn_vehicle(self, vehicle_type='vehicle.tesla.model3'):
         """
@@ -113,22 +135,22 @@ class CarlaSetup:
         
         # Odabir vozila
         vehicle_bp = blueprint_library.filter(vehicle_type)[0]
-        self.logger.info(f"Odabran blueprint za vozilo: {vehicle_type}")
+        self.logger.info(f"Selected vehicle blueprint: {vehicle_type}")
         
         # Pronalaženje spawn tačaka
         spawn_points = self.world.get_map().get_spawn_points()
         if not spawn_points:
-            raise RuntimeError("Nema dostupnih spawn tačaka!")
+            raise RuntimeError("No available spawn points!")
         
         # Odabir nasumične spawn tačke
         spawn_point = random.choice(spawn_points)
-        self.logger.info(f"Odabrana spawn tačka: {spawn_point.location}")
+        self.logger.info(f"Selected spawn point: {spawn_point.location}")
         
         # Spawn vozila
         self.vehicle = self.world.spawn_actor(vehicle_bp, spawn_point)
-        self.logger.info(f"Vozilo spawn-ovano sa ID: {self.vehicle.id}")
+        self.logger.info(f"Vehicle spawned with ID: {self.vehicle.id}")
         
-        # Sačekaj da se vozilo stabilizuje
+        # Wait for vehicle to stabilize
         time.sleep(2)
         
         return self.vehicle
@@ -163,9 +185,9 @@ class CarlaSetup:
             carla.Rotation(pitch=0)        # Bez naginjanja
         )
         
-        # Spawn kamere i attach na vozilo
+        # Spawn camera and attach to vehicle
         self.camera = self.world.spawn_actor(camera_bp, camera_transform, attach_to=self.vehicle)
-        self.logger.info(f"Kamera kreirana sa ID: {self.camera.id}")
+        self.logger.info(f"Camera created with ID: {self.camera.id}")
         
         # Registracija callback funkcije
         self.camera_callback = callback_function
@@ -204,14 +226,14 @@ class CarlaSetup:
         if not self.world or not self.vehicle:
             raise RuntimeError("World ili vehicle nisu inicijalizovani")
             
-        # Kreiranje obstacle detection senzora
+        # Creating obstacle detection sensor
         blueprint_library = self.world.get_blueprint_library()
         obstacle_bp = blueprint_library.find('sensor.other.obstacle')
         obstacle_bp.set_attribute('distance', str(detection_range))
         obstacle_bp.set_attribute('hit_radius', '0.5')
         obstacle_bp.set_attribute('only_dynamics', 'false')
         
-        # Pozicija senzora (prednji deo vozila)
+        # Sensor position (front of vehicle)
         obstacle_transform = carla.Transform(
             carla.Location(x=2.5, z=0.5),  # 2.5m napred, 0.5m visoko
             carla.Rotation(pitch=0)        # Gleda pravo napred
@@ -219,7 +241,7 @@ class CarlaSetup:
         
         # Spawn senzora i attach na vozilo
         self.obstacle_sensor = self.world.spawn_actor(obstacle_bp, obstacle_transform, attach_to=self.vehicle)
-        self.logger.info(f"Obstacle senzor kreiran sa ID: {self.obstacle_sensor.id}, domet: {detection_range}m")
+        self.logger.info(f"Obstacle sensor created with ID: {self.obstacle_sensor.id}, range: {detection_range}m")
         
         # Registracija callback funkcije
         self.obstacle_callback = callback_function
@@ -230,18 +252,25 @@ class CarlaSetup:
     def _obstacle_callback_wrapper(self, event):
         """
         Internal wrapper for obstacle sensor callback.
+        Filters out static road infrastructure.
         
         Args:
             event: CARLA obstacle detection event
         """
-        if self.obstacle_callback:
+        if self.obstacle_callback and event.other_actor:
+            actor_type = event.other_actor.type_id
+            
+            # Check if this actor type should be ignored
+            if any(ignored_type in actor_type for ignored_type in self.ignored_obstacle_types):
+                return  # Skip this obstacle - it's static infrastructure
+            
             obstacle_data = {
                 'frame': event.frame,
                 'timestamp': event.timestamp,
                 'distance': event.distance,
                 'actor': event.other_actor,
-                'actor_id': event.other_actor.id if event.other_actor else None,
-                'actor_type': event.other_actor.type_id if event.other_actor else 'unknown'
+                'actor_id': event.other_actor.id,
+                'actor_type': actor_type
             }
             self.obstacle_callback(obstacle_data)
     
@@ -258,11 +287,11 @@ class CarlaSetup:
         if not self.world or not self.vehicle:
             raise RuntimeError("World ili vehicle nisu inicijalizovani")
             
-        # Kreiranje collision detection senzora
+        # Creating collision detection sensor
         blueprint_library = self.world.get_blueprint_library()
         collision_bp = blueprint_library.find('sensor.other.collision')
         
-        # Pozicija senzora (centar vozila)
+        # Sensor position (center of vehicle)
         collision_transform = carla.Transform(
             carla.Location(x=0.0, z=0.0),  # Centar vozila
             carla.Rotation(pitch=0)
@@ -270,7 +299,7 @@ class CarlaSetup:
         
         # Spawn senzora i attach na vozilo
         self.collision_sensor = self.world.spawn_actor(collision_bp, collision_transform, attach_to=self.vehicle)
-        self.logger.info(f"Collision senzor kreiran sa ID: {self.collision_sensor.id}")
+        self.logger.info(f"Collision sensor created with ID: {self.collision_sensor.id}")
         
         # Registracija callback funkcije
         self.collision_callback = callback_function
@@ -301,26 +330,26 @@ class CarlaSetup:
     
     def cleanup(self):
         """Clean up all CARLA resources."""
-        self.logger.info("Čišćenje resursa...")
+        self.logger.info("Cleaning up resources...")
         
         if self.collision_sensor:
             self.collision_sensor.stop()
             self.collision_sensor.destroy()
-            self.logger.info("Collision senzor uništen")
+            self.logger.info("Collision sensor destroyed")
         
         if self.obstacle_sensor:
             self.obstacle_sensor.stop()
             self.obstacle_sensor.destroy()
-            self.logger.info("Obstacle senzor uništen")
+            self.logger.info("Obstacle sensor destroyed")
         
         if self.camera:
             self.camera.stop()
             self.camera.destroy()
-            self.logger.info("Kamera uništena")
+            self.logger.info("Camera destroyed")
         
         if self.vehicle:
             self.vehicle.destroy()
-            self.logger.info("Vozilo uništeno")
+            self.logger.info("Vehicle destroyed")
         
         # Cleanup pedestrians
         self.cleanup_all_pedestrians()
@@ -330,9 +359,9 @@ class CarlaSetup:
             settings = self.world.get_settings()
             settings.synchronous_mode = False
             self.world.apply_settings(settings)
-            self.logger.info("Resetovan sinhronizovan mod")
+            self.logger.info("Reset synchronous mode")
         
-        self.logger.info("Resursi uspešno očišćeni")
+        self.logger.info("Resources successfully cleaned up")
     
     def get_world(self):
         """Get the CARLA world instance."""
@@ -375,7 +404,7 @@ class CarlaSetup:
         walker_blueprints = blueprint_library.filter('walker.pedestrian.*')
         
         if not walker_blueprints:
-            self.logger.warning("Nema dostupnih pedestrian blueprints")
+            self.logger.warning("No available pedestrian blueprints")
             return
         
         spawned_count = 0
@@ -406,7 +435,7 @@ class CarlaSetup:
             if self._try_spawn_pedestrian(spawn_location, walker_blueprints):
                 spawned_count += 1
         
-        self.logger.info(f"Spawnovano {spawned_count} pešaka ispred vozila")
+        self.logger.info(f"Spawned {spawned_count} pedestrians in front of vehicle")
 
     def spawn_pedestrians_at_sides(self, left_count=1, right_count=1):
         """
@@ -472,7 +501,7 @@ class CarlaSetup:
             if self._try_spawn_pedestrian(spawn_location, walker_blueprints):
                 spawned_total += 1
         
-        self.logger.info(f"Spawnovano {spawned_total} pešaka sa strana vozila")
+        self.logger.info(f"Spawned {spawned_total} pedestrians on vehicle sides")
 
     def _try_spawn_pedestrian(self, location, walker_blueprints):
         """
@@ -504,7 +533,7 @@ class CarlaSetup:
                 return True
             
         except Exception as e:
-            self.logger.warning(f"Greška pri spawnovanju pešaka: {e}")
+            self.logger.warning(f"Error spawning pedestrian: {e}")
         
         return False
 
@@ -540,7 +569,7 @@ class CarlaSetup:
                     self.spawned_pedestrians.remove(pedestrian)
         
         if pedestrians_to_remove:
-            self.logger.info(f"Uklonjeno {len(pedestrians_to_remove)} udaljenih pešaka")
+            self.logger.info(f"Removed {len(pedestrians_to_remove)} distant pedestrians")
 
     def get_pedestrian_count(self):
         """Get current number of spawned pedestrians."""
@@ -555,4 +584,29 @@ class CarlaSetup:
                 pass  # Pedestrian might be already destroyed
         
         self.spawned_pedestrians.clear()
-        self.logger.info("Uklonjeni svi pešaci")
+        self.logger.info("Removed all pedestrians")
+
+    def set_ignored_obstacle_types(self, ignored_types):
+        """
+        Set custom list of obstacle types to ignore.
+        
+        Args:
+            ignored_types: List of actor type strings to ignore
+        """
+        self.ignored_obstacle_types = ignored_types
+        self.logger.info(f"Ažurirane ignorisane prepreke: {ignored_types}")
+
+    def add_ignored_obstacle_type(self, obstacle_type):
+        """
+        Add a new obstacle type to ignore list.
+        
+        Args:
+            obstacle_type: Actor type string to add to ignore list
+        """
+        if obstacle_type not in self.ignored_obstacle_types:
+            self.ignored_obstacle_types.append(obstacle_type)
+            self.logger.info(f"Dodana ignorisana prepreka: {obstacle_type}")
+
+    def get_ignored_obstacle_types(self):
+        """Get current list of ignored obstacle types."""
+        return self.ignored_obstacle_types.copy()
